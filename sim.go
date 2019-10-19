@@ -47,7 +47,7 @@ func (e *elevator) setgoal(level int) {
     e.goal = level
     e.valid = false;
 }
-func (e *elevator) run() {
+func (e *elevator) move() {
     p := Round(e.position * 100) / 100
     g := Round(float64(e.goal))
     if (p > g) {
@@ -65,6 +65,11 @@ func (e *elevator) run() {
     }
     time.Sleep(500 * time.Millisecond)
 }
+func (e *elevator) run() {
+    for !e.valid {
+        e.move()
+    }
+}
 
 // Person
 type person struct {
@@ -79,11 +84,25 @@ func main() {
         floors[i] = NewFloor(i + 1)
     }
 
+    // Create Elevator Bank
+    // has elevators, has an up or down request
+    // has queue of requested floors w/ requested directions
+    // if someone requests it queues their floor and their direction
+
+    // Create elevators add to bank
+    // has z position, requested direction, floor list, occupancy limit, floor list (each floor bool as requested or not)
+    // if no occupants pulls next request from parent bank and moves there
+
+    // Person is on a floor or elevator
+    // has goal floor and starting floor
+    // requests the bank from a floor in a direction
+    // when open elevator opens adds goal floor to list
+
     // Create elevator
     var el = NewElevator("EL01", floors[0].level)
     el.setgoal(3)
-    fmt.Println(el.valid)
-    for !el.valid {
-        el.run()
-    }
+    go el.run()
+
+    time.Sleep(5 * time.Second)
 }
+
