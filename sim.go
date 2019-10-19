@@ -5,12 +5,8 @@ import (
     "time"
     "./floor"
     "./elevator"
+    "./person"
 )
-
-// Person
-type person struct {
-    name string
-}
 
 // Main
 func main() {
@@ -45,5 +41,12 @@ func main() {
     time.Sleep(5 * time.Second)
 
     fmt.Println("ending")
+
+    // p = new Person
+    // p.SetFloor(1)
+    // p.SetDesired(3)
+    // p.Request(elevatorBank)
+    p := person.New("Bob", 1)
+    p.Name = "Bob"
 }
 
