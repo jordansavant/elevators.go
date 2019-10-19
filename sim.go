@@ -6,6 +6,7 @@ import (
     "./floor"
     "./elevator"
     "./person"
+    "./bank"
 )
 
 // Main
@@ -16,7 +17,7 @@ func main() {
     // Create floors
     var floors [5]*floor.Floor
     for i := 0; i < 5; i++ {
-        floors[i] = floor.NewFloor(i + 1)
+        floors[i] = floor.New(i + 1)
     }
 
     // Create Elevator Bank
@@ -34,19 +35,24 @@ func main() {
     // when open elevator opens adds goal floor to list
 
     // Create elevator
-    var el = elevator.NewElevator("EL01", floors[0].Level)
+    var el = elevator.New("EL01", floors[0].Level)
     el.SetGoal(3)
-    go el.Run()
-
-    time.Sleep(5 * time.Second)
+    //go el.Run()
 
     fmt.Println("ending")
+
+    b := bank.New()
 
     // p = new Person
     // p.SetFloor(1)
     // p.SetDesired(3)
     // p.Request(elevatorBank)
     p := person.New("Bob", 1)
-    p.Name = "Bob"
+    p.SetGoal(3)
+    p.MakeRequest(b);
+
+    go b.Run()
+
+    time.Sleep(5 * time.Second)
 }
 

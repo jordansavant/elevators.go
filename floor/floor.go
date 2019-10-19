@@ -4,7 +4,7 @@ package floor
 type Floor struct {
     Level int
 }
-func NewFloor(level int) *Floor {
+func New(level int) *Floor {
     f := Floor { Level: level }
     return &f
 }

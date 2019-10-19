@@ -24,7 +24,7 @@ type Elevator struct {
     Speed float64
 }
 
-func NewElevator(title string, start int) *Elevator {
+func New(title string, start int) *Elevator {
     e := Elevator {
         Title: title,
         Position: float64(start),
@@ -61,7 +61,11 @@ func (e *Elevator) Move() {
 }
 
 func (e *Elevator) Run() {
-    for !e.Valid {
-        e.Move()
+    // While loop
+    for true {
+        // Not at a valid stop keep moving
+        if !e.Valid {
+            e.Move()
+        }
     }
 }
