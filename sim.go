@@ -4,7 +4,6 @@ import (
     "fmt"
     "time"
     "./floor"
-    "./elevator"
     "./person"
     "./bank"
 )
@@ -34,25 +33,19 @@ func main() {
     // requests the bank from a floor in a direction
     // when open elevator opens adds goal floor to list
 
-    // Create elevator
-    var el = elevator.New("EL01", floors[0].Level)
-    el.SetGoal(3)
-    //go el.Run()
-
-    fmt.Println("ending")
-
-    b := bank.New()
+    b := bank.New(5)
 
     // p = new Person
     // p.SetFloor(1)
     // p.SetDesired(3)
     // p.Request(elevatorBank)
-    p := person.New("Bob", 1)
+    p := person.New("Bob", 1, b)
     p.SetGoal(3)
-    p.MakeRequest(b);
 
+    go p.Run()
     go b.Run()
 
-    time.Sleep(5 * time.Second)
+    time.Sleep(60 * time.Second)
+    fmt.Println("ending")
 }
 
