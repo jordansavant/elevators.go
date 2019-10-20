@@ -6,7 +6,7 @@ Would be cool to be able to hook it into a websocket that adds people to the que
 $ go run sim.go
 ```
 
-``` shell
+```
 running
 @ Bank is starting elevators
 - Bob requests a lift
