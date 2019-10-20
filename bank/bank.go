@@ -8,6 +8,8 @@ import (
     "../elevator"
 )
 
+const TICKMS int = 250
+
 type MoveRequest struct {
     Level int
     Up bool
@@ -62,7 +64,7 @@ func (b *Bank) Run() {
                 }
                 break
         }
-        time.Sleep(1 * time.Second)
+        time.Sleep(time.Duration(TICKMS) * time.Millisecond)
     }
 }
 

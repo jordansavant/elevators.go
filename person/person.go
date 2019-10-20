@@ -9,6 +9,8 @@ import (
     "strconv"
 )
 
+const TICKMS int = 250
+
 type Objective struct {
     Goal int
     Seconds int
@@ -47,6 +49,7 @@ func (p *Person) Run() {
                 } else {
                     fmt.Println(p.Name + " leaving")
                     p.WaitGroup.Done()
+                    return
                 }
                 break
             case "request":
@@ -84,7 +87,7 @@ func (p *Person) Run() {
                 p.State = "idle"
                 break
         }
-        time.Sleep(1 * time.Second)
+        time.Sleep(time.Duration(TICKMS) * time.Millisecond)
     }
 }
 

@@ -7,6 +7,8 @@ import (
     "sync"
 )
 
+const TICKMS int = 250
+
 func Round(x float64) float64 {
     t := math.Trunc(x)
     if math.Abs(x-t) >= 0.5 {
@@ -84,7 +86,7 @@ func (e *Elevator) Run() {
                 }
                 break;
         }
-        time.Sleep(1 * time.Second)
+        time.Sleep(time.Duration(TICKMS) * time.Millisecond)
     }
 }
 
