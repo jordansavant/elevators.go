@@ -51,7 +51,6 @@ func (e *Elevator) Run() {
                 //fmt.Println(e.Title + " is idle", e.Goal, e.Level)
                 // Check to see if we need to move
                 if e.HasButtonPressed() {
-                    fmt.Println(e.Title + " has a place to go, moving to checkbutton")
                     e.State = "checkbutton"
                 }
                 break
@@ -150,7 +149,7 @@ func (e *Elevator) PushButton(level int) {
 }
 
 func (e *Elevator) ResetButton(level int) {
-    fmt.Println(e.Title + " resetting button for", level)
+    // fmt.Println(e.Title + " resetting button for", level)
     e.ButtonMutex.Lock()
     e.Buttons[level - 1] = false
     e.ButtonMutex.Unlock()
