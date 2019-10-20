@@ -50,21 +50,23 @@ func (e *Elevator) Run() {
             case "idle":
                 //fmt.Println(e.Title + " is idle", e.Goal, e.Level)
                 // Check to see if we need to move
-                if e.HasButtonPressed() || e.Goal != e.Level {
-                    fmt.Println(e.Title + " has a place to go, moving to check")
-                    e.State = "check"
+                if e.HasButtonPressed() {
+                    fmt.Println(e.Title + " has a place to go, moving to checkbutton")
+                    e.State = "checkbutton"
                 }
                 break
-            case "check":
+            case "checkbutton":
                 // Get our closest destination and move to it
                 e.Goal = e.GetGoalLevel()
+                //fmt.Println(e.Title + " is checkbutton", e.Goal, e.Level)
                 if e.Goal != e.Level {
                     e.Valid = false
                     fmt.Println(e.Title + " moving towards", e.Goal)
                     e.State = "moving"
                 } else {
-                    fmt.Println(e.Title + " nowhere to go")
-                    e.State = "idle"
+                    e.ResetButton(e.Goal)
+                    fmt.Println(e.Title + " at goal opening doors at ready")
+                    e.State = "ready"
                 }
                 break;
             case "ready":
@@ -99,11 +101,11 @@ func (e *Elevator) Move() {
         e.Valid = false;
         fmt.Println(e.Title + " moving up")
     } else {
+        fmt.Println(e.Title + " arrived at", e.Goal)
         e.Position = g
         e.Level = e.Goal
         e.Valid = true;
-        e.Buttons[e.Goal - 1] = false // reset button
-        fmt.Println(e.Title + " arrived at ", e.Goal)
+        e.ResetButton(e.Goal)
     }
 }
 
@@ -144,5 +146,12 @@ func (e *Elevator) PushButton(level int) {
     fmt.Println(e.Title + " button requested for", level)
     e.ButtonMutex.Lock()
     e.Buttons[level - 1] = true
+    e.ButtonMutex.Unlock()
+}
+
+func (e *Elevator) ResetButton(level int) {
+    fmt.Println(e.Title + " resetting button for", level)
+    e.ButtonMutex.Lock()
+    e.Buttons[level - 1] = false
     e.ButtonMutex.Unlock()
 }

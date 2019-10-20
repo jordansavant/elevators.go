@@ -3,6 +3,7 @@ package bank
 import (
     "fmt"
     "time"
+    "strconv"
     "../elevator"
 )
 
@@ -18,15 +19,17 @@ type Bank struct {
     State string
 }
 
-func New(floors int) *Bank {
+func New(floors int, ecount int) *Bank {
     b := Bank {
         Elevators: make([]*elevator.Elevator, 0),
         Queue: make([]*MoveRequest, 0),
         FloorCount: floors,
         State: "start",
     }
-    // Create one elevator
-    b.Elevators = append(b.Elevators, elevator.New(". EL01", 2, floors))
+    // Create elevators on first floor
+    for i := 0; i < ecount; i++ {
+        b.Elevators = append(b.Elevators, elevator.New(". EL0" + strconv.Itoa(i+1), 1, floors))
+    }
     return &b
 }
 
@@ -34,7 +37,7 @@ func (b *Bank) Run() {
     for true {
         switch b.State {
             case "start":
-                fmt.Println("bank is starting elevators")
+                fmt.Println("@ Bank is starting elevators")
                 for i := 0; i < len(b.Elevators); i++ {
                     e := b.Elevators[i];
                     go e.Run()
@@ -50,7 +53,7 @@ func (b *Bank) Run() {
                         q := b.Queue[0]
                         b.Queue = b.Queue[1:]
                         // TODO assign direction
-                        fmt.Println("bank assigns elevator to", q.Level)
+                        fmt.Println("@ Bank assigns elevator to", q.Level)
                         e.PushButton(q.Level)
                     }
                 }
