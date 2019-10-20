@@ -16,13 +16,12 @@ func main() {
     var wg sync.WaitGroup
 
     // Create an Elevator Bank with floors and elevators
-    b := bank.New(5, 3)
+    b := bank.New(5, 1)
     go b.Run()
 
     // Create some people with requests
     bob := person.New("- Bob", 1, b, &wg)
     wg.Add(1)
-    //bob.SetGoal(3)
     bob.AddObjective(3, 10)
     bob.AddObjective(2, 5)
     bob.AddObjective(1, 0)
@@ -30,14 +29,19 @@ func main() {
 
     time.Sleep(3 * time.Second)
 
-    //stan := person.New("- Stan", 4, b, &wg)
-    //wg.Add(1)
-    //stan.SetGoal(2)
-    //go stan.Run()
+    stan := person.New("- Stan", 4, b, &wg)
+    wg.Add(1)
+    stan.AddObjective(2, 7)
+    stan.AddObjective(1, 0)
+    go stan.Run()
 
     //sue := person.New("- Sue", 2, b, &wg)
     //wg.Add(1)
     //sue.SetGoal(3)
+    //sue.AddObjective(5, 10)
+    //sue.AddObjective(2, 3)
+    //sue.AddObjective(3, 5)
+    //sue.AddObjective(1, 0)
     //go sue.Run()
 
     wg.Wait()
