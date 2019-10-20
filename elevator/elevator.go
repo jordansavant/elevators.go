@@ -4,6 +4,7 @@ import (
     "fmt"
     "math"
     "time"
+    "sync"
 )
 
 func Round(x float64) float64 {
@@ -24,6 +25,7 @@ type Elevator struct {
     Speed float64
     State string
     Buttons []bool
+    ButtonMutex *sync.Mutex
 }
 
 func New(title string, start int, floors int) *Elevator {
@@ -36,33 +38,9 @@ func New(title string, start int, floors int) *Elevator {
         Speed: 0.25,
         State: "idle",
         Buttons: make([]bool, floors),
+        ButtonMutex: &sync.Mutex{},
     }
     return &e
-}
-
-func (e *Elevator) SetGoal(level int) {
-    e.Goal = level
-    e.Valid = false;
-}
-
-func (e *Elevator) Move() {
-    p := Round(e.Position * 100) / 100
-    g := Round(float64(e.Goal))
-    if (p > g) {
-        e.Position -= e.Speed
-        e.Valid = false;
-        fmt.Println(e.Title + " moving down")
-    } else if (p < g) {
-        e.Position += e.Speed
-        e.Valid = false;
-        fmt.Println(e.Title + " moving up")
-    } else {
-        e.Position = g
-        e.Level = e.Goal
-        e.Valid = true;
-        e.Buttons[e.Goal - 1] = false // reset button
-        fmt.Println(e.Title + " arrived at ", e.Goal)
-    }
 }
 
 func (e *Elevator) Run() {
@@ -91,7 +69,6 @@ func (e *Elevator) Run() {
                 break;
             case "ready":
                 // mandatory waiting period at a level before going idle or moving
-                fmt.Println(e.Title + " opening doors")
                 time.Sleep(2 * time.Second)
                 fmt.Println(e.Title + " closing doors and moving to idle")
                 e.State = "idle"
@@ -101,7 +78,7 @@ func (e *Elevator) Run() {
                 if !e.Valid {
                     e.Move()
                 } else {
-                    fmt.Println(e.Title + " moving to ready")
+                    fmt.Println(e.Title + " moving to ready and opening doors")
                     e.State = "ready"
                 }
                 break;
@@ -110,23 +87,49 @@ func (e *Elevator) Run() {
     }
 }
 
+func (e *Elevator) Move() {
+    p := Round(e.Position * 100) / 100
+    g := Round(float64(e.Goal))
+    if (p > g) {
+        e.Position -= e.Speed
+        e.Valid = false;
+        fmt.Println(e.Title + " moving down")
+    } else if (p < g) {
+        e.Position += e.Speed
+        e.Valid = false;
+        fmt.Println(e.Title + " moving up")
+    } else {
+        e.Position = g
+        e.Level = e.Goal
+        e.Valid = true;
+        e.Buttons[e.Goal - 1] = false // reset button
+        fmt.Println(e.Title + " arrived at ", e.Goal)
+    }
+}
+
 func (e *Elevator) GetGoalLevel() int {
     // Loop through our buttons and get closest goal
     // TODO honor a diretion from the bank ASC vs DESC
+    e.ButtonMutex.Lock()
     for i := 0; i < len(e.Buttons); i++ {
         if e.Buttons[i] {
+            e.ButtonMutex.Unlock()
             return i + 1
         }
     }
+    e.ButtonMutex.Unlock()
     return e.Level
 }
 
 func (e *Elevator) HasButtonPressed() bool {
+    e.ButtonMutex.Lock()
     for i := 0; i < len(e.Buttons); i++ {
         if e.Buttons[i] {
+            e.ButtonMutex.Unlock()
             return true
         }
     }
+    e.ButtonMutex.Unlock()
     return false
 }
 
@@ -139,5 +142,7 @@ func (e *Elevator) ReadyAtLevel(level int) bool {
 
 func (e *Elevator) PushButton(level int) {
     fmt.Println(e.Title + " button requested for", level)
+    e.ButtonMutex.Lock()
     e.Buttons[level - 1] = true
+    e.ButtonMutex.Unlock()
 }

@@ -26,7 +26,7 @@ func New(floors int) *Bank {
         State: "start",
     }
     // Create one elevator
-    b.Elevators = append(b.Elevators, elevator.New("EL01", 2, floors))
+    b.Elevators = append(b.Elevators, elevator.New(". EL01", 2, floors))
     return &b
 }
 
@@ -67,16 +67,6 @@ func (b *Bank) GetIdleElevator() *elevator.Elevator {
         }
     }
     return nil
-}
-
-func (b *Bank) HasElevator(level int) bool {
-    // look through elevators and see if one is at the requested floor and is loading
-    for i := 0; i < len(b.Elevators); i++ {
-        if b.Elevators[i].ReadyAtLevel(level) {
-            return true
-        }
-    }
-    return false
 }
 
 func (b *Bank) GetElevator(level int) *elevator.Elevator {

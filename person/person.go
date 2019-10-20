@@ -13,7 +13,6 @@ type Person struct {
     Level int
     Goal int
     State string
-    InElevator bool
     Bank *bank.Bank
     Elevator *elevator.Elevator
 }
@@ -43,7 +42,7 @@ func (p *Person) Run() {
         switch p.State {
             case "idle":
                 //fmt.Println(p.Name + " is idle")
-                if p.Goal != p.Level && !p.InElevator { // feel like i cant be InElevator and in state idle
+                if p.Goal != p.Level{
                     fmt.Println(p.Name + " moving to request")
                     p.State = "request"
                 }
@@ -54,10 +53,10 @@ func (p *Person) Run() {
                 p.State = "waiting"
                 break;
             case "waiting":
-                if p.Bank.HasElevator(p.Level) {
-                    p.Elevator = p.Bank.GetElevator(p.Level)
-                    p.InElevator = true
-                    fmt.Println(p.Name + " elevator arrived, getting on and pressing ", p.Goal)
+                e := p.Bank.GetElevator(p.Level)
+                if e != nil {
+                    fmt.Println(p.Name + " elevator arrived, getting on and pressing", p.Goal)
+                    p.Elevator = e
                     p.Elevator.PushButton(p.Goal)
                     p.State = "riding"
                 }
@@ -66,7 +65,6 @@ func (p *Person) Run() {
                 if p.Elevator.ReadyAtLevel(p.Goal) {
                     fmt.Println(p.Name + " elevator ready at level, going idle")
                     p.Elevator = nil
-                    p.InElevator = false
                     p.Level = p.Goal
                     p.State = "idle"
                 }

@@ -39,7 +39,7 @@ func main() {
     // p.SetFloor(1)
     // p.SetDesired(3)
     // p.Request(elevatorBank)
-    p := person.New("Bob", 1, b)
+    p := person.New("- Bob", 1, b)
     p.SetGoal(3)
 
     go p.Run()
