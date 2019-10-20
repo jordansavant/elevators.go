@@ -4,6 +4,7 @@ import (
     "fmt"
     "time"
     "strconv"
+    "sync"
     "../elevator"
 )
 
@@ -17,6 +18,7 @@ type Bank struct {
     Queue []*MoveRequest
     FloorCount int
     State string
+    QueueMutex *sync.Mutex
 }
 
 func New(floors int, ecount int) *Bank {
@@ -25,6 +27,7 @@ func New(floors int, ecount int) *Bank {
         Queue: make([]*MoveRequest, 0),
         FloorCount: floors,
         State: "start",
+        QueueMutex: &sync.Mutex{},
     }
     // Create elevators on first floor
     for i := 0; i < ecount; i++ {
@@ -46,15 +49,15 @@ func (b *Bank) Run() {
                 break
             case "running":
                 // If we have a queued request see if we can assign an idle elevator
-                if len(b.Queue) > 0 {
+                if b.HasQueue() {
                     e := b.GetIdleElevator()
                     if e != nil {
-                        // get queued request
-                        q := b.Queue[0]
-                        b.Queue = b.Queue[1:]
-                        // TODO assign direction
-                        fmt.Println("@ Bank assigns elevator to", q.Level)
-                        e.PushButton(q.Level)
+                        q := b.DequeueRequest()
+                        if q != nil {
+                            // TODO assign direction
+                            fmt.Println("@ Bank assigns elevator to", q.Level)
+                            e.PushButton(q.Level)
+                        }
                     }
                 }
                 break
@@ -83,9 +86,30 @@ func (b *Bank) GetElevator(level int) *elevator.Elevator {
 }
 
 func (b *Bank) RequestLift(curlevel int, up bool) {
+    b.QueueMutex.Lock()
     b.Queue = append(b.Queue, &MoveRequest {
         Level: curlevel,
         Up: up,
     })
+    b.QueueMutex.Unlock()
+}
+
+func (b *Bank) HasQueue() bool {
+    b.QueueMutex.Lock()
+    r := len(b.Queue) > 0
+    b.QueueMutex.Unlock()
+    return r
+}
+
+func (b *Bank) DequeueRequest() *MoveRequest {
+    b.QueueMutex.Lock()
+    if len(b.Queue) > 0 {
+        q := b.Queue[0]
+        b.Queue = b.Queue[1:]
+        b.QueueMutex.Unlock()
+        return q
+    }
+    b.QueueMutex.Unlock()
+    return nil
 }
 
