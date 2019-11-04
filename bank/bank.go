@@ -5,7 +5,7 @@ import (
     "time"
     "strconv"
     "sync"
-    "../elevator"
+    "github.com/jordansavant/elevators.go/elevator"
 )
 
 const TICKMS int = 250

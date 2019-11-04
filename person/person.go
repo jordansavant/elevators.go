@@ -1,8 +1,8 @@
 package person
 
 import (
-    "../bank"
-    "../elevator"
+    "github.com/jordansavant/elevators.go/bank"
+    "github.com/jordansavant/elevators.go/elevator"
     "time"
     "fmt"
     "sync"

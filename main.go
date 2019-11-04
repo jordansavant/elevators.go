@@ -4,8 +4,8 @@ import (
     "fmt"
     "time"
     "sync"
-    "./person"
-    "./bank"
+    "github.com/jordansavant/elevators.go/person"
+    "github.com/jordansavant/elevators.go/bank"
 )
 
 // Main
