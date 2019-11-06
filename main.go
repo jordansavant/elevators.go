@@ -2,23 +2,23 @@ package main
 
 import (
     "fmt"
-    // "time"
-    // "sync"
     "strconv"
     "net"
     "net/rpc"
     "os"
     "github.com/jordansavant/elevators.go/server"
-    // "github.com/jordansavant/elevators.go/person"
-    // "github.com/jordansavant/elevators.go/bank"
+    "github.com/jordansavant/elevators.go/client"
 )
 
 // Main
 func main() {
 
+    port := 1234
+
     // Test RPC
     arg := os.Args[1]
     if arg == "server" {
+        fmt.Println("server init")
         floorCount, e := strconv.Atoi(os.Args[2])
         if e != nil {
             panic("missing valid floor count arg")
@@ -32,85 +32,24 @@ func main() {
         srv := server.Server{}
         rpc.Register(&srv)
         // Create a TCP listener that will listen on `Port`
-        listener, _ := net.Listen("tcp", ":1234")
+        listener, _ := net.Listen("tcp", ":" + strconv.Itoa(port))
         // Close the listener whenever we stop
         defer listener.Close()
         // Start server with floors and elevators
         srv.Start(floorCount, elevatorCount)
         // Wait for incoming connections
         rpc.Accept(listener)
+        fmt.Println("server exit")
     } else {
-        var (
-            addr     = "127.0.0.1:1234"
-            // request  = &server.Request{Name: arg}
-            // response = new(server.Response)
-        )
+        fmt.Println("client init")
         wname := os.Args[1]
-        
-        // Establish the connection to the adddress of the
-        // RPC server
-        client, _ := rpc.Dial("tcp", addr)
-        defer client.Close()
-        
-        // Perform a procedure call (core.HandlerName == Handler.Execute)
-        // with the Request as specified and a pointer to a response
-        // to have our response back.
-        // _ = client.Call("Server.Execute", request, response)
-        // fmt.Println(response.Message)
 
-        sched := make([]server.WorkerSchedulePair, 4)
-        sched[0].Floor = 2
-        sched[0].Seconds = 2
-        sched[1].Floor = 5
-        sched[1].Seconds = 5
-        sched[2].Floor = 4
-        sched[2].Seconds = 6
-        sched[3].Floor = 1
-        sched[3].Seconds = 0
-        wresp := server.WorkerResponse{}
-        err := client.Call("Server.AddWorker", &server.WorkerRequest{Name: wname, Schedule: sched},  &wresp)
-        if err != nil {
-            fmt.Println("Server Error:", err)
-            panic(err)
-        }
-        fmt.Println(wresp.Message)
+        client := client.New();
+        client.Start("127.0.0.1:" + strconv.Itoa(port));
+        defer client.End()
+        
+        client.AddWorker(wname, "2:2 4:3 5:1 1:0")
+        fmt.Println("client exit")
     }
-
-    // fmt.Println("running")
-
-    // var wg sync.WaitGroup
-
-    // // Create an Elevator Bank with floors and elevators
-    // b := bank.New(5, 3)
-    // go b.Run()
-
-    // // Create some people with requests
-    // bob := person.New("- Bob", 1, b, &wg)
-    // wg.Add(1)
-    // bob.AddObjective(3, 10)
-    // bob.AddObjective(2, 5)
-    // bob.AddObjective(1, 0)
-    // go bob.Run()
-
-    // time.Sleep(2 * time.Second)
-
-    // stan := person.New("- Stan", 4, b, &wg)
-    // wg.Add(1)
-    // stan.AddObjective(2, 7)
-    // stan.AddObjective(1, 0)
-    // go stan.Run()
-
-    // //sue := person.New("- Sue", 2, b, &wg)
-    // //wg.Add(1)
-    // //sue.SetGoal(3)
-    // //sue.AddObjective(5, 10)
-    // //sue.AddObjective(2, 3)
-    // //sue.AddObjective(3, 5)
-    // //sue.AddObjective(1, 0)
-    // //go sue.Run()
-
-    // wg.Wait()
-
-    // fmt.Println("ending")
 }
 
