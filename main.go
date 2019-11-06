@@ -44,7 +44,7 @@ func main() {
         // to have our response back.
         _ = client.Call("Server.Execute", request, response)
         fmt.Println(response.Message)
-        err := client.Call("Server.Start", &server.StartRequest{ElevatorCount: -1}, response)
+        err := client.Call("Server.Start", &server.StartRequest{ElevatorCount: 1}, response)
         if err != nil {
             fmt.Println("Server Error:", err)
             panic(err)
