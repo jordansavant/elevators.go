@@ -29,14 +29,12 @@ func main() {
         }
 
         // start a server
-        srv := server.Server{}
-        rpc.Register(&srv)
+        srv := server.New(floorCount, elevatorCount)
+        rpc.Register(srv)
         // Create a TCP listener that will listen on `Port`
         listener, _ := net.Listen("tcp", ":" + strconv.Itoa(port))
         // Close the listener whenever we stop
         defer listener.Close()
-        // Start server with floors and elevators
-        srv.Start(floorCount, elevatorCount)
         // Wait for incoming connections
         rpc.Accept(listener)
         fmt.Println("server exit")

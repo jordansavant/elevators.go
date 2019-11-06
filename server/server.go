@@ -31,8 +31,16 @@ type WorkerResponse struct {
 
 
 type Server struct {
-	running bool
 	bank *bank.Bank
+}
+
+func New(floorCount int, elevatorCount int) *Server {
+	// build server
+	s := Server {bank: bank.New(floorCount, elevatorCount)}
+	// start the elevator bank
+	go s.bank.Run()
+
+	return &s
 }
 
 func (s *Server) Execute(req Request, res *Response) (err error) {
@@ -43,27 +51,6 @@ func (s *Server) Execute(req Request, res *Response) (err error) {
 
 	res.Message = "Hello " + req.Name
 	return
-}
-
-func (s *Server) Start(floorCount int, elevatorCount int) error {
-	if floorCount <= 0 {
-		return errors.New("floor count must be provided")
-	}
-	if elevatorCount <= 0 {
-		return errors.New("elevator count must be provided")
-	}
-
-	// prevent double run
-	if !s.running {
-		s.running = true
-
-		// start the elevator bank
-		b := bank.New(floorCount, elevatorCount)
-		s.bank = b;
-		go b.Run()
-	}
-
-	return nil
 }
 
 func (s *Server) AddWorker(req WorkerRequest, res *WorkerResponse) error {

@@ -52,5 +52,6 @@ func (c *Client) AddWorker(name string, schedule string) {
 }
 
 func (c *Client) End() {
+	fmt.Println("closing client connection")
 	c.rpcClient.Close()
 }
