@@ -19,6 +19,15 @@ func main() {
     // Test RPC
     arg := os.Args[1]
     if arg == "server" {
+        floorCount, e := strconv.Atoi(os.Args[2])
+        if e != nil {
+            panic("missing valid floor count arg")
+        }
+        elevatorCount, e := strconv.Atoi(os.Args[3])
+        if e != nil {
+            panic("missing valid elevator count arg")
+        }
+
         // start a server
         srv := server.Server{}
         rpc.Register(&srv)
@@ -26,6 +35,8 @@ func main() {
         listener, _ := net.Listen("tcp", ":1234")
         // Close the listener whenever we stop
         defer listener.Close()
+        // Start server with floors and elevators
+        srv.Start(floorCount, elevatorCount)
         // Wait for incoming connections
         rpc.Accept(listener)
     } else {
@@ -34,15 +45,7 @@ func main() {
             // request  = &server.Request{Name: arg}
             // response = new(server.Response)
         )
-        fc, e := strconv.Atoi(os.Args[1])
-        if e != nil {
-            fmt.Println("missing valid floor count arg")
-        }
-        ec, e := strconv.Atoi(os.Args[2])
-        if e != nil {
-            fmt.Println("missing valid elevator count arg")
-        }
-        wname := os.Args[3]
+        wname := os.Args[1]
         
         // Establish the connection to the adddress of the
         // RPC server
@@ -55,24 +58,17 @@ func main() {
         // _ = client.Call("Server.Execute", request, response)
         // fmt.Println(response.Message)
 
-
-        sresp := server.StartResponse{}
-        err := client.Call("Server.Start", &server.StartRequest{FloorCount: fc, ElevatorCount: ec}, &sresp)
-        if err != nil {
-            fmt.Println("Server Error:", err)
-            panic(err)
-        }
-        fmt.Println(sresp.Message)
-
-        sched := make([]server.WorkerSchedulePair, 3)
+        sched := make([]server.WorkerSchedulePair, 4)
         sched[0].Floor = 2
         sched[0].Seconds = 2
         sched[1].Floor = 5
         sched[1].Seconds = 5
         sched[2].Floor = 4
         sched[2].Seconds = 6
+        sched[3].Floor = 1
+        sched[3].Seconds = 0
         wresp := server.WorkerResponse{}
-        err = client.Call("Server.AddWorker", &server.WorkerRequest{Name: wname, Schedule: sched},  &wresp)
+        err := client.Call("Server.AddWorker", &server.WorkerRequest{Name: wname, Schedule: sched},  &wresp)
         if err != nil {
             fmt.Println("Server Error:", err)
             panic(err)

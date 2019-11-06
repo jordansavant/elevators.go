@@ -7,7 +7,6 @@ import (
     "github.com/jordansavant/elevators.go/person"
     "github.com/jordansavant/elevators.go/bank"
 	"errors"
-	"strconv"
 )
 
 type Response struct {
@@ -16,14 +15,6 @@ type Response struct {
 
 type Request struct {
 	Name string
-}
-
-type StartRequest struct {
-	FloorCount int
-	ElevatorCount int
-}
-type StartResponse struct {
-	Message string
 }
 
 type WorkerSchedulePair struct {
@@ -54,9 +45,12 @@ func (s *Server) Execute(req Request, res *Response) (err error) {
 	return
 }
 
-func (s *Server) Start(req StartRequest, res *StartResponse) error {
-	if req.ElevatorCount <= 0 {
-		return errors.New("Elevator count must be provided")
+func (s *Server) Start(floorCount int, elevatorCount int) error {
+	if floorCount <= 0 {
+		return errors.New("floor count must be provided")
+	}
+	if elevatorCount <= 0 {
+		return errors.New("elevator count must be provided")
 	}
 
 	// prevent double run
@@ -64,12 +58,11 @@ func (s *Server) Start(req StartRequest, res *StartResponse) error {
 		s.running = true
 
 		// start the elevator bank
-		b := bank.New(req.FloorCount, req.ElevatorCount)
+		b := bank.New(floorCount, elevatorCount)
 		s.bank = b;
 		go b.Run()
 	}
 
-	res.Message = strconv.Itoa(req.ElevatorCount) + " elevators started"
 	return nil
 }
 
