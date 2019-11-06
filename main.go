@@ -4,6 +4,7 @@ import (
     "fmt"
     // "time"
     // "sync"
+    "strconv"
     "net"
     "net/rpc"
     "os"
@@ -30,9 +31,18 @@ func main() {
     } else {
         var (
             addr     = "127.0.0.1:1234"
-            request  = &server.Request{Name: arg}
-            response = new(server.Response)
+            // request  = &server.Request{Name: arg}
+            // response = new(server.Response)
         )
+        fc, e := strconv.Atoi(os.Args[1])
+        if e != nil {
+            fmt.Println("missing valid floor count arg")
+        }
+        ec, e := strconv.Atoi(os.Args[2])
+        if e != nil {
+            fmt.Println("missing valid elevator count arg")
+        }
+        wname := os.Args[3]
         
         // Establish the connection to the adddress of the
         // RPC server
@@ -42,14 +52,32 @@ func main() {
         // Perform a procedure call (core.HandlerName == Handler.Execute)
         // with the Request as specified and a pointer to a response
         // to have our response back.
-        _ = client.Call("Server.Execute", request, response)
-        fmt.Println(response.Message)
-        err := client.Call("Server.Start", &server.StartRequest{ElevatorCount: 1}, response)
+        // _ = client.Call("Server.Execute", request, response)
+        // fmt.Println(response.Message)
+
+
+        sresp := server.StartResponse{}
+        err := client.Call("Server.Start", &server.StartRequest{FloorCount: fc, ElevatorCount: ec}, &sresp)
         if err != nil {
             fmt.Println("Server Error:", err)
             panic(err)
         }
-        fmt.Println(response.Message)
+        fmt.Println(sresp.Message)
+
+        sched := make([]server.WorkerSchedulePair, 3)
+        sched[0].Floor = 2
+        sched[0].Seconds = 2
+        sched[1].Floor = 5
+        sched[1].Seconds = 5
+        sched[2].Floor = 4
+        sched[2].Seconds = 6
+        wresp := server.WorkerResponse{}
+        err = client.Call("Server.AddWorker", &server.WorkerRequest{Name: wname, Schedule: sched},  &wresp)
+        if err != nil {
+            fmt.Println("Server Error:", err)
+            panic(err)
+        }
+        fmt.Println(wresp.Message)
     }
 
     // fmt.Println("running")

@@ -1,9 +1,9 @@
 package server
 
 import (
-	"fmt"
-    "time"
-    "sync"
+	// "fmt"
+    // "time"
+    // "sync"
     "github.com/jordansavant/elevators.go/person"
     "github.com/jordansavant/elevators.go/bank"
 	"errors"
@@ -19,15 +19,29 @@ type Request struct {
 }
 
 type StartRequest struct {
+	FloorCount int
 	ElevatorCount int
 }
 type StartResponse struct {
 	Message string
 }
 
+type WorkerSchedulePair struct {
+	Floor int
+	Seconds int
+}
+type WorkerRequest struct {
+	Name string
+	Schedule []WorkerSchedulePair
+}
+type WorkerResponse struct {
+	Message string
+}
+
 
 type Server struct {
 	running bool
+	bank *bank.Bank
 }
 
 func (s *Server) Execute(req Request, res *Response) (err error) {
@@ -40,47 +54,34 @@ func (s *Server) Execute(req Request, res *Response) (err error) {
 	return
 }
 
-
 func (s *Server) Start(req StartRequest, res *StartResponse) error {
 	if req.ElevatorCount <= 0 {
 		return errors.New("Elevator count must be provided")
 	}
 
+	// prevent double run
 	if !s.running {
 		s.running = true
-		go StartElevators(req.ElevatorCount)
+
+		// start the elevator bank
+		b := bank.New(req.FloorCount, req.ElevatorCount)
+		s.bank = b;
+		go b.Run()
 	}
 
 	res.Message = strconv.Itoa(req.ElevatorCount) + " elevators started"
 	return nil
 }
 
-func StartElevators(elevatorCount int) {
-	fmt.Println("running")
-
-	var wg sync.WaitGroup
-
-    // Create an Elevator Bank with floors and elevators
-    b := bank.New(5, 3)
-    go b.Run()
-
-    // Create some people with requests
-    bob := person.New("- Bob", 1, b, &wg)
-    wg.Add(1)
-    bob.AddObjective(3, 10)
-    bob.AddObjective(2, 5)
-    bob.AddObjective(1, 0)
-    go bob.Run()
-
-    time.Sleep(2 * time.Second)
-
-    stan := person.New("- Stan", 4, b, &wg)
-    wg.Add(1)
-    stan.AddObjective(2, 7)
-    stan.AddObjective(1, 0)
-    go stan.Run()
-
-    wg.Wait()
-
-    fmt.Println("ending")
+func (s *Server) AddWorker(req WorkerRequest, res *WorkerResponse) error {
+	// create the work and his schedule and start him working
+	worker := person.New("- " + req.Name, 1, s.bank)
+	for _, sched := range req.Schedule {
+		worker.AddObjective(sched.Floor, sched.Seconds)
+	}
+	go worker.Run()
+	// update our server to know to wait for another person to be complete before allowing it to end
+    // s.personWg.Add(1)
+	res.Message = req.Name + " added"
+	return nil
 }

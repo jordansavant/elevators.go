@@ -28,14 +28,13 @@ type Person struct {
     WaitGroup *sync.WaitGroup
 }
 
-func New(name string, level int, b *bank.Bank, wg *sync.WaitGroup) *Person {
+func New(name string, level int, b *bank.Bank) *Person {
     p := Person {
         Name: name,
         Level: level,
         State: "idle",
         Bank: b,
         Elevator: nil,
-        WaitGroup: wg,
     }
     return &p
 }
@@ -48,8 +47,7 @@ func (p *Person) Run() {
                     p.State = "request"
                 } else {
                     fmt.Println(p.Name + " leaving")
-                    p.WaitGroup.Done()
-                    return
+                    return // END
                 }
                 break
             case "request":
