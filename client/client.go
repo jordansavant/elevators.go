@@ -24,15 +24,18 @@ func (c *Client) Start(addr string) {
 
 	// Establish the connection to the adddress of the
 	// RPC server
-	rpcClient, _ := rpc.Dial("tcp", addr)
+	rpcClient, err := rpc.Dial("tcp", addr)
+	if err != nil {
+		panic(err)
+	}
 	c.rpcClient = rpcClient
 }
 
 func (c *Client) AddWorker(name string, schedule string) {
 
 	// convert schedule string to list
-	// eg: 2:4 5:1 3:5 1:0
-	pairs := strings.Split(schedule, " ")
+	// eg: 2:4_5:1_3:5_1:0
+	pairs := strings.Split(schedule, "_")
 	fmt.Println(schedule, pairs)
 	sched := make([]server.WorkerSchedulePair, len(pairs))
 	for i, pair := range pairs {
