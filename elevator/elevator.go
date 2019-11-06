@@ -28,6 +28,7 @@ type Elevator struct {
     State string
     Buttons []bool
     ButtonMutex *sync.Mutex
+    PositionMutex *sync.Mutex
 }
 
 func New(title string, start int, floors int) *Elevator {
@@ -41,6 +42,7 @@ func New(title string, start int, floors int) *Elevator {
         State: "idle",
         Buttons: make([]bool, floors),
         ButtonMutex: &sync.Mutex{},
+        PositionMutex: &sync.Mutex{},
     }
     return &e
 }
@@ -94,16 +96,22 @@ func (e *Elevator) Move() {
     p := Round(e.Position * 100) / 100
     g := Round(float64(e.Goal))
     if (p > g) {
+        e.PositionMutex.Lock()
         e.Position -= e.Speed
+        e.PositionMutex.Unlock()
         e.Valid = false;
         fmt.Println(e.Title + " moving down")
     } else if (p < g) {
+        e.PositionMutex.Lock()
         e.Position += e.Speed
+        e.PositionMutex.Unlock()
         e.Valid = false;
         fmt.Println(e.Title + " moving up")
     } else {
         fmt.Println(e.Title + " arrived at", e.Goal)
+        e.PositionMutex.Lock()
         e.Position = g
+        e.PositionMutex.Unlock()
         e.Level = e.Goal
         e.Valid = true;
         e.ResetButton(e.Goal)
@@ -155,4 +163,12 @@ func (e *Elevator) ResetButton(level int) {
     e.ButtonMutex.Lock()
     e.Buttons[level - 1] = false
     e.ButtonMutex.Unlock()
+}
+
+func (e *Elevator) GetPosition() float64 {
+    var p float64
+    e.PositionMutex.Lock()
+    p = e.Position
+    e.PositionMutex.Unlock()
+    return p
 }

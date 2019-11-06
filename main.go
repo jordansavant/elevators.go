@@ -108,6 +108,12 @@ var scrcentery = float64(screenh / 2)
 var foundationy = float64(screenh - 10)
 func guiUpdate(screen *ebiten.Image) error {
     
+
+    // Listen for input
+    if isWorkerButtonPressed() {
+        c.AddWorker("Joe", "2:2_3:3_5:1_1:0")
+    }
+
     // Update game world here
     if updateCounter % updateModulo == 0 {
         // this lets me run things at less than 60fps so i can ping the server only periodically
@@ -132,6 +138,7 @@ func guiUpdate(screen *ebiten.Image) error {
 
         fcount := float64(lastSnapshot.FloorCount)
         ecount := float64(lastSnapshot.ElevatorCount)
+        positions := lastSnapshot.ElevatorPositions
 
         // draw building
         buildheight := fheight * fcount
@@ -140,13 +147,29 @@ func guiUpdate(screen *ebiten.Image) error {
         ebitenutil.DrawRect(screen, buildleft - 10, foundationy - buildheight, buildwidth + 20, buildheight, color.RGBA{0xff, 0xff, 0, 0xff})
 
         // draw each elevator
-        ly := foundationy - fpad / 2
-        for i :=0; i < lastSnapshot.ElevatorCount; i++ {
+        for i, p := range positions {
             lx := shaftwidth * float64(i)
+            ly := (foundationy - fpad / 2) - translateEposition(p, fcount, buildheight) + eheight
             ebitenutil.DrawRect(screen, buildleft + shaftpad/2 + lx, ly - eheight, ewidth, eheight, color.RGBA{0xff, 0, 0xff, 0xff})
         }
     }
 
 	// End
 	return nil
+
+}
+
+func translateEposition(eposition float64, floorCount float64, buildheight float64) float64 {
+    // if building height is 100 and positio is 3.5 out of 5
+    // then i need to be at 
+    ratio := eposition / floorCount
+    return ratio * buildheight
+}
+
+var upPressedLast = false
+var upPressed = false
+func isWorkerButtonPressed() bool {
+    upPressedLast = upPressed
+    upPressed = ebiten.IsKeyPressed(ebiten.KeyUp)
+    return upPressed && !upPressedLast
 }

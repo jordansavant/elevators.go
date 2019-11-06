@@ -34,6 +34,7 @@ type SnapshotRequest struct {
 type SnapshotResponse struct {
 	FloorCount int
 	ElevatorCount int
+	ElevatorPositions []float64
 }
 
 type Server struct {
@@ -74,6 +75,7 @@ func (s *Server) GetSnapshot(req SnapshotRequest, res *SnapshotResponse) error {
 
 	res.FloorCount = s.bank.FloorCount
 	res.ElevatorCount = len(s.bank.Elevators)
+	res.ElevatorPositions = s.bank.GetElevatorPositions()
 
 	return nil
 }

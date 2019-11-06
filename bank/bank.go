@@ -115,3 +115,10 @@ func (b *Bank) DequeueRequest() *MoveRequest {
     return nil
 }
 
+func (b *Bank) GetElevatorPositions() []float64 {
+    ps := make([]float64, len(b.Elevators))
+    for i, e := range b.Elevators {
+        ps[i] = e.GetPosition()
+    }
+    return ps
+}
