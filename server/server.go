@@ -29,6 +29,12 @@ type WorkerResponse struct {
 	Message string
 }
 
+type SnapshotRequest struct {
+}
+type SnapshotResponse struct {
+	FloorCount int
+	ElevatorCount int
+}
 
 type Server struct {
 	bank *bank.Bank
@@ -48,7 +54,6 @@ func (s *Server) Execute(req Request, res *Response) (err error) {
 		err = errors.New("A name must be specified")
 		return
 	}
-
 	res.Message = "Hello " + req.Name
 	return
 }
@@ -62,5 +67,13 @@ func (s *Server) AddWorker(req WorkerRequest, res *WorkerResponse) error {
 	go worker.Run()
 	// update our server to know to wait for another person to be complete before allowing it to end
 	res.Message = req.Name + " added"
+	return nil
+}
+
+func (s *Server) GetSnapshot(req SnapshotRequest, res *SnapshotResponse) error {
+
+	res.FloorCount = s.bank.FloorCount
+	res.ElevatorCount = len(s.bank.Elevators)
+
 	return nil
 }

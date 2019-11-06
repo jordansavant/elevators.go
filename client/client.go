@@ -54,6 +54,16 @@ func (c *Client) AddWorker(name string, schedule string) {
 	fmt.Println(wresp.Message)
 }
 
+func (c *Client) GetSnapshot() *server.SnapshotResponse {
+	resp := server.SnapshotResponse{}
+	err := c.rpcClient.Call("Server.GetSnapshot", &server.SnapshotRequest{}, &resp)
+	if err != nil {
+		fmt.Println("Server Error:", err)
+		panic(err)
+	}
+	return &resp
+}
+
 func (c *Client) End() {
 	fmt.Println("closing client connection")
 	c.rpcClient.Close()
