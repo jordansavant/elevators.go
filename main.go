@@ -8,6 +8,9 @@ import (
     "os"
     "github.com/jordansavant/elevators.go/server"
     "github.com/jordansavant/elevators.go/client"
+	"image/color"
+	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 func usage() {
@@ -60,11 +63,18 @@ func main() {
 
             cmd := os.Args[2]
             switch cmd {
+
                 case "worker":
                     wname := os.Args[3] // Joe
                     sched := os.Args[4] // 2:2_4:3_5:1_1:0
                     client.AddWorker(wname, sched)
                     fmt.Println("client exit")
+                    break
+
+                case "gui":
+                    if err := ebiten.Run(update, 320, 240, 2, "Hello, World!"); err != nil {
+                        panic(err)
+                    }
                     break
             }
 
@@ -72,3 +82,32 @@ func main() {
     }
 }
 
+var updateModulo = 10
+var updateCounter = 0
+
+func update(screen *ebiten.Image) error {
+    // Update game world here
+    if updateCounter % updateModulo == 0 {
+        // this lets me run things at less than 60fps so i can ping the server only periodically
+        fmt.Println("tick", updateCounter)
+        tick()
+    }
+    updateCounter++
+
+	// Determine if we skip this frame
+	if ebiten.IsDrawingSkipped() {
+		return nil
+	}
+
+	// Draw game world here
+	screen.Fill(color.RGBA{0xff, 0, 0, 0xff})
+	ebitenutil.DebugPrint(screen, "Hello, World!")
+
+	// End
+	return nil
+}
+
+func tick() {
+    // 
+
+}

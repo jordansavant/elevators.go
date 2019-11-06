@@ -61,7 +61,6 @@ func (s *Server) AddWorker(req WorkerRequest, res *WorkerResponse) error {
 	}
 	go worker.Run()
 	// update our server to know to wait for another person to be complete before allowing it to end
-    // s.personWg.Add(1)
 	res.Message = req.Name + " added"
 	return nil
 }
