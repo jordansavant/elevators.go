@@ -94,6 +94,9 @@ func (p *Person) Run() {
 
 func (p *Person) AddObjective(level int, duration int) {
     o := Objective { Goal: level, Seconds: duration }
+    if level > p.Bank.FloorCount {
+        o.Goal = p.Bank.FloorCount // max safe
+    }
     p.Schedule = append(p.Schedule, &o)
 }
 

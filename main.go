@@ -161,7 +161,7 @@ func guiUpdate(screen *ebiten.Image) error {
 
             // draw occupants within elevator
             o := occupants[i]
-            ebitenutil.DebugPrintAt(screen, strconv.Itoa(int(o)), int(lx), int(ly))
+            ebitenutil.DebugPrintAt(screen, strconv.Itoa(int(o)), int(lx) + 1, int(ly))
         }
     }
 

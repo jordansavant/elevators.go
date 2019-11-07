@@ -110,6 +110,10 @@ func (b *Bank) RequestLift(curlevel int, up bool) {
     if b.InQueue(curlevel) {
         return
     }
+    // dont' queue if elevator at floor and ready
+    if b.HasElevatorReady(curlevel) {
+        return
+    }
     // queue requesting floor
     b.QueueMutex.Lock()
     b.Queue = append(b.Queue, &MoveRequest {
@@ -117,6 +121,15 @@ func (b *Bank) RequestLift(curlevel int, up bool) {
         Up: up,
     })
     b.QueueMutex.Unlock()
+}
+
+func (b *Bank) HasElevatorReady(level int) bool {
+    for _, e := range b.Elevators {
+        if e.State == "ready" && e.Level == level {
+            return true
+        }
+    }
+    return false
 }
 
 func (b* Bank) InQueue(level int) bool {
