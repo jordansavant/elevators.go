@@ -96,16 +96,13 @@ func runClient(serverAddress string, args []string) {
 var updateModulo = 10
 var updateCounter = 0
 var lastSnapshot *server.SnapshotResponse = nil
-var elevatorCount = 0
+
 var ewidth = 10.0
 var eheight = 20.0
-var fpad = 2.0
-var fheight = float64(eheight + fpad)
-var shaftpad = 2.0
-var shaftwidth = float64(ewidth + shaftpad)
+var foundationy = float64(screenh - 10)
+
 var scrcenterx = float64(screenw / 2)
 var scrcentery = float64(screenh / 2)
-var foundationy = float64(screenh - 10)
 func guiUpdate(screen *ebiten.Image) error {
     
 
@@ -117,8 +114,6 @@ func guiUpdate(screen *ebiten.Image) error {
     // Update game world here
     if updateCounter % updateModulo == 0 {
         // this lets me run things at less than 60fps so i can ping the server only periodically
-        fmt.Println("tick", updateCounter)
-
         // make get elevator data from server
         lastSnapshot = c.GetSnapshot()
         fmt.Println(lastSnapshot)
@@ -141,16 +136,16 @@ func guiUpdate(screen *ebiten.Image) error {
         positions := lastSnapshot.ElevatorPositions
 
         // draw building
-        buildheight := fheight * fcount
-        buildwidth := shaftwidth * ecount
+        buildheight := eheight * fcount
+        buildwidth := ewidth * ecount
         buildleft := scrcenterx - (buildwidth / 2)
-        ebitenutil.DrawRect(screen, buildleft - 10, foundationy - buildheight, buildwidth + 20, buildheight, color.RGBA{0xff, 0xff, 0, 0xff})
+        ebitenutil.DrawRect(screen, buildleft, foundationy - buildheight, buildwidth, buildheight, color.RGBA{0xff, 0xff, 0, 0xff})
 
         // draw each elevator
         for i, p := range positions {
-            lx := shaftwidth * float64(i)
-            ly := (foundationy - fpad / 2) - translateEposition(p, fcount, buildheight) + eheight
-            ebitenutil.DrawRect(screen, buildleft + shaftpad/2 + lx, ly - eheight, ewidth, eheight, color.RGBA{0xff, 0, 0xff, 0xff})
+            lx := buildleft + ewidth * float64(i)
+            ly := foundationy - translateEposition(p, fcount, buildheight)
+            ebitenutil.DrawRect(screen, lx + 1, ly + 1, ewidth - 2 , eheight - 2, color.RGBA{0xff, 0, 0xff, 0xff})
         }
     }
 
@@ -161,7 +156,7 @@ func guiUpdate(screen *ebiten.Image) error {
 
 func translateEposition(eposition float64, floorCount float64, buildheight float64) float64 {
     // if building height is 100 and positio is 3.5 out of 5
-    // then i need to be at 
+    // then the top of my elevator needs to be at 70
     ratio := eposition / floorCount
     return ratio * buildheight
 }
