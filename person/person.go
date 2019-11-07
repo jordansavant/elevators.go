@@ -37,6 +37,7 @@ func New(name string, level int, b *bank.Bank) *Person {
         Bank: b,
         Elevator: nil,
     }
+    atomic.AddInt64(&p.Bank.FloorWorkerCounts[p.Level - 1], 1) // increment that I am working on the first floor
     return &p
 }
 
@@ -48,6 +49,7 @@ func (p *Person) Run() {
                     p.State = "request"
                 } else {
                     fmt.Println(p.Name + " leaving")
+                    atomic.AddInt64(&p.Bank.FloorWorkerCounts[p.Level - 1], -1) // decrement that I am working on this floor
                     return // END
                 }
                 break
@@ -64,6 +66,7 @@ func (p *Person) Run() {
                     goal := p.Schedule[0].Goal
                     fmt.Println(p.Name + " elevator arrived, getting on and pressing", goal)
                     p.Elevator.PushButton(goal)
+                    atomic.AddInt64(&p.Bank.FloorWorkerCounts[p.Level - 1], -1) // decrement that I am working on this floor
                     p.State = "riding"
                 }
                 break
@@ -75,6 +78,7 @@ func (p *Person) Run() {
                     p.Elevator = nil
                     p.Level = goal
                     p.State = "working"
+                    atomic.AddInt64(&p.Bank.FloorWorkerCounts[p.Level - 1], 1) // increment that I am working on this floor
                 }
                 break
             case "working":

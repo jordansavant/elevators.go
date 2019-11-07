@@ -22,6 +22,7 @@ type Bank struct {
     FloorCount int
     State string
     QueueMutex *sync.Mutex
+    FloorWorkerCounts []int64
 }
 
 func New(floors int, ecount int) *Bank {
@@ -31,6 +32,7 @@ func New(floors int, ecount int) *Bank {
         FloorCount: floors,
         State: "start",
         QueueMutex: &sync.Mutex{},
+        FloorWorkerCounts: make([]int64, floors),
     }
     // Create elevators on first floor
     for i := 0; i < ecount; i++ {
@@ -184,4 +186,8 @@ func (b *Bank) GetElevatorOccupants() []int64 {
         oc[i] = e.Occupants
     }
     return oc
+}
+
+func (b *Bank) GetFloorWorkerCounts() []int64 {
+    return b.FloorWorkerCounts
 }
