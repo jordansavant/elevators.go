@@ -96,8 +96,9 @@ func runClient(serverAddress string, args []string) {
 var updateModulo = 10
 var updateCounter = 0
 var lastSnapshot *server.SnapshotResponse = nil
+var snapshot *server.SnapshotResponse = nil
 
-var ewidth = 10.0
+var ewidth = 15.0
 var eheight = 20.0
 var foundationy = float64(screenh - 10)
 
@@ -120,8 +121,9 @@ func guiUpdate(screen *ebiten.Image) error {
     if updateCounter % updateModulo == 0 {
         // this lets me run things at less than 60fps so i can ping the server only periodically
         // make get elevator data from server
-        lastSnapshot = c.GetSnapshot()
-        fmt.Println(lastSnapshot)
+        lastSnapshot = snapshot
+        snapshot = c.GetSnapshot()
+        // fmt.Println(lastSnapshot)
     }
     updateCounter++
 
@@ -132,15 +134,15 @@ func guiUpdate(screen *ebiten.Image) error {
 
 	// Draw game world here
     screen.Fill(bgColor)
-    if lastSnapshot != nil {
-        ebitenutil.DebugPrint(screen, "Floors: " + strconv.Itoa(lastSnapshot.FloorCount))
-        ebitenutil.DebugPrintAt(screen, "Elevators: " + strconv.Itoa(lastSnapshot.ElevatorCount), 0, 15)
+    if snapshot != nil {
+        ebitenutil.DebugPrint(screen, "Floors: " + strconv.Itoa(snapshot.FloorCount))
+        ebitenutil.DebugPrintAt(screen, "Elevators: " + strconv.Itoa(snapshot.ElevatorCount), 0, 15)
 
-        fcount := float64(lastSnapshot.FloorCount)
-        ecount := float64(lastSnapshot.ElevatorCount)
-        positions := lastSnapshot.ElevatorPositions
-        occupants := lastSnapshot.ElevatorOccupants
-        floorworkercounts := lastSnapshot.FloorWorkerCounts
+        fcount := float64(snapshot.FloorCount)
+        ecount := float64(snapshot.ElevatorCount)
+        positions := snapshot.ElevatorPositions
+        occupants := snapshot.ElevatorOccupants
+        floorworkercounts := snapshot.FloorWorkerCounts
 
         // draw ground
         ebitenutil.DrawRect(screen, 0, foundationy, float64(screenw), float64(screenh) - foundationy, groundColor)
@@ -163,7 +165,7 @@ func guiUpdate(screen *ebiten.Image) error {
 
             // draw occupants within elevator
             o := occupants[i]
-            ebitenutil.DebugPrintAt(screen, strconv.Itoa(int(o)), int(lx) + 1, int(ly))
+            ebitenutil.DebugPrintAt(screen, strconv.Itoa(int(o)), int(lx) + 2, int(ly))
         }
 
         // draw worker counts
@@ -176,6 +178,23 @@ func guiUpdate(screen *ebiten.Image) error {
 
 	// End
 	return nil
+}
+
+func clamp(x float64, lowerlimit float64, upperlimit float64) float64 {
+    if x < lowerlimit {
+        return lowerlimit
+    }
+    if x > upperlimit {
+        return upperlimit
+    }
+    return x
+}
+
+func smoothstep(edge0 float64, edge1 float64, x float64) float64 {
+    // Scale, bias and saturate x to 0..1 range
+    x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0); 
+    // Evaluate polynomial
+    return x * x * (3 - 2 * x);
 }
 
 func translateEposition(eposition float64, floorCount float64, buildheight float64) float64 {
