@@ -29,6 +29,7 @@ type Elevator struct {
     Buttons []bool
     ButtonMutex *sync.Mutex
     PositionMutex *sync.Mutex
+    Occupants int64
 }
 
 func New(title string, start int, floors int) *Elevator {

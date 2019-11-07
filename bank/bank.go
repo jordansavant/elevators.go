@@ -3,6 +3,7 @@ package bank
 import (
     "fmt"
     "time"
+    "math"
     "strconv"
     "sync"
     "github.com/jordansavant/elevators.go/elevator"
@@ -52,10 +53,11 @@ func (b *Bank) Run() {
             case "running":
                 // If we have a queued request see if we can assign an idle elevator
                 if b.HasQueue() {
-                    e := b.GetIdleElevator()
-                    if e != nil {
-                        q := b.DequeueRequest()
-                        if q != nil {
+                    r := b.PeekRequest()
+                    if r != nil {
+                        e := b.GetIdleElevatorClosest(r.Level)
+                        if e != nil {
+                            q := b.DequeueRequest()
                             // TODO assign direction
                             fmt.Println("@ Bank assigns elevator to", q.Level)
                             e.PushButton(q.Level)
@@ -75,6 +77,22 @@ func (b *Bank) GetIdleElevator() *elevator.Elevator {
         }
     }
     return nil
+}
+
+func (b *Bank) GetIdleElevatorClosest(requestedLevel int) *elevator.Elevator {
+    // get elevator closest to requested level
+    var e *elevator.Elevator = nil
+    var closestdist = 0.0
+    for i := 0; i < len(b.Elevators); i++ {
+        if b.Elevators[i].State == "idle" {
+            dist := math.Abs(float64(b.Elevators[i].Level - requestedLevel))
+            if e == nil || dist < closestdist {
+                closestdist = dist
+                e = b.Elevators[i]
+            }
+        }
+    }
+    return e
 }
 
 func (b *Bank) GetElevator(level int) *elevator.Elevator {
@@ -119,15 +137,23 @@ func (b *Bank) HasQueue() bool {
     return r
 }
 
+func (b *Bank) PeekRequest() *MoveRequest {
+    b.QueueMutex.Lock()
+    defer b.QueueMutex.Unlock()
+    if len(b.Queue) > 0 {
+        return b.Queue[len(b.Queue)-1]
+    }
+    return nil
+}
+
 func (b *Bank) DequeueRequest() *MoveRequest {
     b.QueueMutex.Lock()
+    defer b.QueueMutex.Unlock()
     if len(b.Queue) > 0 {
         q := b.Queue[0]
         b.Queue = b.Queue[1:]
-        b.QueueMutex.Unlock()
         return q
     }
-    b.QueueMutex.Unlock()
     return nil
 }
 
@@ -137,4 +163,12 @@ func (b *Bank) GetElevatorPositions() []float64 {
         ps[i] = e.GetPosition()
     }
     return ps
+}
+
+func (b *Bank) GetElevatorOccupants() []int64 {
+    oc := make([]int64, len(b.Elevators))
+    for i, e := range b.Elevators {
+        oc[i] = e.Occupants
+    }
+    return oc
 }

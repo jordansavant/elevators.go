@@ -139,6 +139,7 @@ func guiUpdate(screen *ebiten.Image) error {
         fcount := float64(lastSnapshot.FloorCount)
         ecount := float64(lastSnapshot.ElevatorCount)
         positions := lastSnapshot.ElevatorPositions
+        occupants := lastSnapshot.ElevatorOccupants
 
         // draw ground
         ebitenutil.DrawRect(screen, 0, foundationy, float64(screenw), float64(screenh) - foundationy, groundColor)
@@ -152,9 +153,15 @@ func guiUpdate(screen *ebiten.Image) error {
 
         // draw each elevator
         for i, p := range positions {
+
+            // draw elevator at its position
             lx := buildleft + ewidth * float64(i)
             ly := foundationy - translateEposition(p, fcount, buildheight)
             ebitenutil.DrawRect(screen, lx + 1, ly + 1, ewidth - 2 , eheight - 2, elevatorColor)
+
+            // draw occupants within elevator
+            o := occupants[i]
+            ebitenutil.DebugPrintAt(screen, strconv.Itoa(int(o)), int(lx), int(ly))
         }
     }
 

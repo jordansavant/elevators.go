@@ -6,6 +6,7 @@ import (
     "time"
     "fmt"
     "sync"
+    "sync/atomic"
     "strconv"
 )
 
@@ -59,6 +60,7 @@ func (p *Person) Run() {
                 e := p.Bank.GetElevator(p.Level)
                 if e != nil {
                     p.Elevator = e
+                    atomic.AddInt64(&p.Elevator.Occupants, 1) // increment occupant count
                     goal := p.Schedule[0].Goal
                     fmt.Println(p.Name + " elevator arrived, getting on and pressing", goal)
                     p.Elevator.PushButton(goal)
@@ -69,6 +71,7 @@ func (p *Person) Run() {
                 goal := p.Schedule[0].Goal
                 if p.Elevator.ReadyAtLevel(goal) {
                     fmt.Println(p.Name + " elevator ready at level, going to work")
+                    atomic.AddInt64(&p.Elevator.Occupants, -1) // decrement occupant count
                     p.Elevator = nil
                     p.Level = goal
                     p.State = "working"
