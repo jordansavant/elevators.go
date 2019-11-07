@@ -101,6 +101,11 @@ var ewidth = 10.0
 var eheight = 20.0
 var foundationy = float64(screenh - 10)
 
+var bgColor = color.RGBA{0x33, 0x33, 0xFF, 0xFF}
+var buildingColor = color.RGBA{0xAA, 0xAA, 0xBB, 0xFF}
+var elevatorColor = color.RGBA{0, 0, 0, 0xFF}
+var groundColor = color.RGBA{0, 0xAA, 0, 0xFF}
+
 var scrcenterx = float64(screenw / 2)
 var scrcentery = float64(screenh / 2)
 func guiUpdate(screen *ebiten.Image) error {
@@ -126,7 +131,7 @@ func guiUpdate(screen *ebiten.Image) error {
 	}
 
 	// Draw game world here
-    screen.Fill(color.RGBA{0xff, 0, 0, 0xff})
+    screen.Fill(bgColor)
     if lastSnapshot != nil {
         ebitenutil.DebugPrint(screen, "Floors: " + strconv.Itoa(lastSnapshot.FloorCount))
         ebitenutil.DebugPrintAt(screen, "Elevators: " + strconv.Itoa(lastSnapshot.ElevatorCount), 0, 20)
@@ -135,17 +140,21 @@ func guiUpdate(screen *ebiten.Image) error {
         ecount := float64(lastSnapshot.ElevatorCount)
         positions := lastSnapshot.ElevatorPositions
 
+        // draw ground
+        ebitenutil.DrawRect(screen, 0, foundationy, float64(screenw), float64(screenh) - foundationy, groundColor)
+
         // draw building
         buildheight := eheight * fcount
         buildwidth := ewidth * ecount
         buildleft := scrcenterx - (buildwidth / 2)
-        ebitenutil.DrawRect(screen, buildleft, foundationy - buildheight, buildwidth, buildheight, color.RGBA{0xff, 0xff, 0, 0xff})
+        ebitenutil.DrawRect(screen, buildleft, foundationy - buildheight - 10, buildwidth, buildheight + 10, buildingColor) // toss some padding on top
+        ebitenutil.DrawRect(screen, buildleft, foundationy - buildheight - 5 - 10, 10, 5, buildingColor) // roof unit
 
         // draw each elevator
         for i, p := range positions {
             lx := buildleft + ewidth * float64(i)
             ly := foundationy - translateEposition(p, fcount, buildheight)
-            ebitenutil.DrawRect(screen, lx + 1, ly + 1, ewidth - 2 , eheight - 2, color.RGBA{0xff, 0, 0xff, 0xff})
+            ebitenutil.DrawRect(screen, lx + 1, ly + 1, ewidth - 2 , eheight - 2, elevatorColor)
         }
     }
 
