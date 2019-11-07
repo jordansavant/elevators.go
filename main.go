@@ -134,7 +134,7 @@ func guiUpdate(screen *ebiten.Image) error {
     screen.Fill(bgColor)
     if lastSnapshot != nil {
         ebitenutil.DebugPrint(screen, "Floors: " + strconv.Itoa(lastSnapshot.FloorCount))
-        ebitenutil.DebugPrintAt(screen, "Elevators: " + strconv.Itoa(lastSnapshot.ElevatorCount), 0, 20)
+        ebitenutil.DebugPrintAt(screen, "Elevators: " + strconv.Itoa(lastSnapshot.ElevatorCount), 0, 15)
 
         fcount := float64(lastSnapshot.FloorCount)
         ecount := float64(lastSnapshot.ElevatorCount)
@@ -148,7 +148,7 @@ func guiUpdate(screen *ebiten.Image) error {
         buildwidth := ewidth * ecount
         buildleft := scrcenterx - (buildwidth / 2)
         ebitenutil.DrawRect(screen, buildleft, foundationy - buildheight - 10, buildwidth, buildheight + 10, buildingColor) // toss some padding on top
-        ebitenutil.DrawRect(screen, buildleft, foundationy - buildheight - 5 - 10, 10, 5, buildingColor) // roof unit
+        ebitenutil.DrawRect(screen, buildleft, foundationy - buildheight - 5 - 10, 10, 5, buildingColor) // roof unit for fun
 
         // draw each elevator
         for i, p := range positions {
@@ -160,7 +160,6 @@ func guiUpdate(screen *ebiten.Image) error {
 
 	// End
 	return nil
-
 }
 
 func translateEposition(eposition float64, floorCount float64, buildheight float64) float64 {
@@ -174,6 +173,6 @@ var upPressedLast = false
 var upPressed = false
 func isWorkerButtonPressed() bool {
     upPressedLast = upPressed
-    upPressed = ebiten.IsKeyPressed(ebiten.KeyUp)
+    upPressed = ebiten.IsKeyPressed(ebiten.KeyEnter)
     return upPressed && !upPressedLast
 }

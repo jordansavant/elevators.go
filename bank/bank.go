@@ -88,12 +88,28 @@ func (b *Bank) GetElevator(level int) *elevator.Elevator {
 }
 
 func (b *Bank) RequestLift(curlevel int, up bool) {
+    // don't queue if in queue already
+    if b.InQueue(curlevel) {
+        return
+    }
+    // queue requesting floor
     b.QueueMutex.Lock()
     b.Queue = append(b.Queue, &MoveRequest {
         Level: curlevel,
         Up: up,
     })
     b.QueueMutex.Unlock()
+}
+
+func (b* Bank) InQueue(level int) bool {
+    b.QueueMutex.Lock()
+    defer b.QueueMutex.Unlock()
+    for _, l := range b.Queue {
+        if l.Level == level {
+            return true
+        }
+    }
+    return false
 }
 
 func (b *Bank) HasQueue() bool {
