@@ -16,11 +16,16 @@ type MoveRequest struct {
     Up bool
 }
 
+const (
+    StateStart = iota
+    StateRunning = iota
+)
+
 type Bank struct {
     Elevators []*elevator.Elevator
     Queue []*MoveRequest
     FloorCount int
-    State string
+    State int
     QueueMutex *sync.Mutex
     FloorWorkerCounts []int64
 }
@@ -30,7 +35,7 @@ func New(floors int, ecount int) *Bank {
         Elevators: make([]*elevator.Elevator, 0),
         Queue: make([]*MoveRequest, 0),
         FloorCount: floors,
-        State: "start",
+        State: StateStart,
         QueueMutex: &sync.Mutex{},
         FloorWorkerCounts: make([]int64, floors),
     }
@@ -44,15 +49,15 @@ func New(floors int, ecount int) *Bank {
 func (b *Bank) Run() {
     for true {
         switch b.State {
-            case "start":
+            case StateStart:
                 fmt.Println("@ Bank is starting elevators")
                 for i := 0; i < len(b.Elevators); i++ {
                     e := b.Elevators[i];
                     go e.Run()
                 }
-                b.State = "running"
+                b.State = StateRunning
                 break
-            case "running":
+            case StateRunning:
                 // If we have a queued request see if we can assign an idle elevator
                 if b.HasQueue() {
                     r := b.PeekRequest()
