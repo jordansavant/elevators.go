@@ -74,7 +74,7 @@ func (b *Bank) Run() {
 
 func (b *Bank) GetIdleElevator() *elevator.Elevator {
     for i := 0; i < len(b.Elevators); i++ {
-        if b.Elevators[i].State == "idle" {
+        if b.Elevators[i].State2 == elevator.StateIdle {
             return b.Elevators[i]
         }
     }
@@ -86,7 +86,7 @@ func (b *Bank) GetIdleElevatorClosest(requestedLevel int) *elevator.Elevator {
     var e *elevator.Elevator = nil
     var closestdist = 0.0
     for i := 0; i < len(b.Elevators); i++ {
-        if b.Elevators[i].State == "idle" {
+        if b.Elevators[i].State2 == elevator.StateIdle {
             dist := math.Abs(float64(b.Elevators[i].Level - requestedLevel))
             if e == nil || dist < closestdist {
                 closestdist = dist
@@ -127,7 +127,7 @@ func (b *Bank) RequestLift(curlevel int, up bool) {
 
 func (b *Bank) HasElevatorReady(level int) bool {
     for _, e := range b.Elevators {
-        if e.State == "ready" && e.Level == level {
+        if e.State2 == elevator.StateIdle && e.Level == level {
             return true
         }
     }

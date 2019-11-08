@@ -17,6 +17,14 @@ func Round(x float64) float64 {
     return t
 }
 
+// Elevator States
+const (
+    StateIdle = iota
+    StateCheckButton = iota
+    StateReady = iota
+    StateMoving = iota
+)
+
 // Elevator
 type Elevator struct {
     Title string
@@ -25,7 +33,7 @@ type Elevator struct {
     Level int
     Valid bool
     Speed float64
-    State string
+    State int
     Buttons []bool
     ButtonMutex *sync.Mutex
     PositionMutex *sync.Mutex
@@ -40,7 +48,7 @@ func New(title string, start int, floors int) *Elevator {
         Level: start,
         Valid: true,
         Speed: 0.25,
-        State: "idle",
+        State: StateIdle,
         Buttons: make([]bool, floors),
         ButtonMutex: &sync.Mutex{},
         PositionMutex: &sync.Mutex{},
@@ -52,40 +60,40 @@ func (e *Elevator) Run() {
     // While loop
     for true {
         switch e.State {
-            case "idle":
+            case StateIdle:
                 //fmt.Println(e.Title + " is idle", e.Goal, e.Level)
                 // Check to see if we need to move
                 if e.HasButtonPressed() {
-                    e.State = "checkbutton"
+                    e.State = StateCheckButton
                 }
                 break
-            case "checkbutton":
+            case StateCheckButton:
                 // Get our closest destination and move to it
                 e.Goal = e.GetGoalLevel()
                 //fmt.Println(e.Title + " is checkbutton", e.Goal, e.Level)
                 if e.Goal != e.Level {
                     e.Valid = false
                     fmt.Println(e.Title + " moving towards", e.Goal)
-                    e.State = "moving"
+                    e.State = StateMoving
                 } else {
                     e.ResetButton(e.Goal)
                     fmt.Println(e.Title + " at goal opening doors at ready")
-                    e.State = "ready"
+                    e.State = StateReady
                 }
                 break;
-            case "ready":
+            case StateReady:
                 // mandatory waiting period at a level before going idle or moving
                 time.Sleep(2 * time.Second)
                 fmt.Println(e.Title + " closing doors and moving to idle")
-                e.State = "idle"
+                e.State = StateIdle
                 break
-            case "moving":
+            case StateMoving:
                 // we are in this state because a button has been pressed
                 if !e.Valid {
                     e.Move()
                 } else {
                     fmt.Println(e.Title + " moving to ready and opening doors")
-                    e.State = "ready"
+                    e.State = StateReady
                 }
                 break;
         }
@@ -146,7 +154,7 @@ func (e *Elevator) HasButtonPressed() bool {
 }
 
 func (e *Elevator) ReadyAtLevel(level int) bool {
-    if e.State == "ready" && e.Level == level {
+    if e.State == StateReady && e.Level == level {
         return true
     }
     return false
