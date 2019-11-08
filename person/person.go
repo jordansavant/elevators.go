@@ -17,12 +17,21 @@ type Objective struct {
     Seconds int
 }
 
+// Person States
+const (
+    StateIdle = iota
+    StateRequest = iota
+    StateWaiting = iota
+    StateRiding = iota
+    StateWorking = iota
+)
+
 // Person
 type Person struct {
     Name string
     Level int
     Goal int
-    State string
+    State int
     Schedule []*Objective
     Bank *bank.Bank
     Elevator *elevator.Elevator
@@ -33,7 +42,7 @@ func New(name string, level int, b *bank.Bank) *Person {
     p := Person {
         Name: name,
         Level: level,
-        State: "idle",
+        State: StateIdle,
         Bank: b,
         Elevator: nil,
     }
@@ -44,21 +53,21 @@ func New(name string, level int, b *bank.Bank) *Person {
 func (p *Person) Run() {
     for true {
         switch p.State {
-            case "idle":
+            case StateIdle:
                 if len(p.Schedule) > 0 {
-                    p.State = "request"
+                    p.State = StateRequest
                 } else {
                     fmt.Println(p.Name + " leaving")
                     atomic.AddInt64(&p.Bank.FloorWorkerCounts[p.Level - 1], -1) // decrement that I am working on this floor
                     return // END
                 }
                 break
-            case "request":
+            case StateRequest:
                 fmt.Println(p.Name + " requests a lift")
                 p.MakeRequest(p.Bank)
-                p.State = "waiting"
+                p.State = StateWaiting
                 break;
-            case "waiting":
+            case StateWaiting:
                 e := p.Bank.GetElevator(p.Level)
                 if e != nil {
                     p.Elevator = e
@@ -67,21 +76,21 @@ func (p *Person) Run() {
                     fmt.Println(p.Name + " elevator arrived, getting on and pressing", goal)
                     p.Elevator.PushButton(goal)
                     atomic.AddInt64(&p.Bank.FloorWorkerCounts[p.Level - 1], -1) // decrement that I am working on this floor
-                    p.State = "riding"
+                    p.State = StateRiding
                 }
                 break
-            case "riding":
+            case StateRiding:
                 goal := p.Schedule[0].Goal
                 if p.Elevator.ReadyAtLevel(goal) {
                     fmt.Println(p.Name + " elevator ready at level, going to work")
                     atomic.AddInt64(&p.Elevator.Occupants, -1) // decrement occupant count
                     p.Elevator = nil
                     p.Level = goal
-                    p.State = "working"
+                    p.State = StateWorking
                     atomic.AddInt64(&p.Bank.FloorWorkerCounts[p.Level - 1], 1) // increment that I am working on this floor
                 }
                 break
-            case "working":
+            case StateWorking:
                 // Get duration I should be on this level
                 s := time.Duration(p.Schedule[0].Seconds)
                 fmt.Println(p.Name + " is working for " + strconv.Itoa(p.Schedule[0].Seconds) + " seconds")
@@ -89,7 +98,7 @@ func (p *Person) Run() {
                 // Remove schedule
                 p.Schedule = p.Schedule[1:]
                 fmt.Println(p.Name + " done working, going idle")
-                p.State = "idle"
+                p.State = StateIdle
                 break
         }
         time.Sleep(time.Duration(TICKMS) * time.Millisecond)
