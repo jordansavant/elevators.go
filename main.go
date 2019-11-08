@@ -111,6 +111,7 @@ func guiUpdate(screen *ebiten.Image) error {
         // make get elevator data from server
         lastSnapshot = snapshot
         snapshot = clnt.GetSnapshot()
+        fmt.Println("tick network", updateCounter, snapshot)
     }
     updateCounter++
 

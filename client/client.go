@@ -36,7 +36,6 @@ func (c *Client) AddWorker(name string, schedule string) {
 	// convert schedule string to list
 	// eg: 2:4_5:1_3:5_1:0
 	pairs := strings.Split(schedule, "_")
-	fmt.Println(schedule, pairs)
 	sched := make([]server.WorkerSchedulePair, len(pairs))
 	for i, pair := range pairs {
 		s := strings.Split(pair, ":")
@@ -51,7 +50,7 @@ func (c *Client) AddWorker(name string, schedule string) {
 		fmt.Println("Server Error:", err)
 		panic(err)
 	}
-	fmt.Println(wresp.Message)
+	fmt.Println(wresp.Message, schedule)
 }
 
 func (c *Client) GetSnapshot() *server.SnapshotResponse {
