@@ -137,9 +137,9 @@ func (b *Bank) RequestLift(curlevel int, up bool) {
         return
     }
     // dont' queue if elevator at floor and ready
-    if b.HasElevatorReady(curlevel) {
-        return
-    }
+    // if b.HasElevatorReady(curlevel) {
+    //     return
+    // }
     // queue requesting floor
     b.QueueMutex.Lock()
     b.Queue = append(b.Queue, &MoveRequest {

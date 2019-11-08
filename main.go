@@ -4,6 +4,7 @@ import (
 	"github.com/jordansavant/elevators.go/elevator"
     "fmt"
     "strconv"
+    "strings"
     "net"
     "net/rpc"
     "math/rand"
@@ -55,8 +56,8 @@ func runServer(serverAddress string, args []string) {
     rpc.Accept(listener)
 }
 
-var screenw = 320
-var screenh = 240
+var screenw = 640
+var screenh = 360
 var scrscale = 2.0
 func runClient(serverAddress string, args []string) {
     // start a client
@@ -99,13 +100,10 @@ var groundColor = color.RGBA{0, 0xAA, 0, 0xFF}
 
 var scrcenterx = float64(screenw / 2)
 var scrcentery = float64(screenh / 2)
-func guiUpdate(screen *ebiten.Image) error {
-    
+var job string;
+var jobModulo = 180
 
-    // Listen for input
-    if isWorkerButtonPressed() {
-        clnt.AddWorker("Joe", "2:2_3:3_5:1_1:0")
-    }
+func guiUpdate(screen *ebiten.Image) error {
 
     // Update game world here
     if updateCounter % updateModulo == 0 {
@@ -113,9 +111,18 @@ func guiUpdate(screen *ebiten.Image) error {
         // make get elevator data from server
         lastSnapshot = snapshot
         snapshot = clnt.GetSnapshot()
-        // fmt.Println(lastSnapshot)
     }
     updateCounter++
+
+    // Update random job streing
+    if job == "" || updateCounter % jobModulo == 0 {
+        job = createSchedule(snapshot.FloorCount)
+    }
+
+    // Listen for input
+    if isWorkerButtonPressed() {
+        clnt.AddWorker("Joe", job)
+    }
 
 	// Determine if we skip this frame
 	if ebiten.IsDrawingSkipped() {
@@ -138,6 +145,7 @@ func guiUpdate(screen *ebiten.Image) error {
         ebitenutil.DebugPrint(screen, "Floors: " + strconv.Itoa(snapshot.FloorCount))
         ebitenutil.DebugPrintAt(screen, "Elevators: " + strconv.Itoa(snapshot.ElevatorCount), 0, 15)
         ebitenutil.DebugPrintAt(screen, "Population: " + strconv.Itoa(int(population)), 0, 30)
+        ebitenutil.DebugPrintAt(screen, "Run Job: " + job, 0, 45)
     
         // draw ground
         ebitenutil.DrawRect(screen, 0, foundationy, float64(screenw), float64(screenh) - foundationy, groundColor)
@@ -188,6 +196,19 @@ func guiUpdate(screen *ebiten.Image) error {
 
 	// End
 	return nil
+}
+
+func createSchedule(floors int) string {
+    // create a random schedule eg 2:2_3:3_7:1_1:0
+    // between 1 and 10 jobs
+    var jstrs []string
+    jobcount := 1 + rand.Intn(9)
+    for i := 0; i < jobcount; i++ {
+        floor := 1 + rand.Intn(floors)
+        time := 1 + rand.Intn(7)
+        jstrs = append(jstrs, strconv.Itoa(floor) + ":" + strconv.Itoa(time))
+    }
+    return strings.Join(jstrs, "_") + "_1:0"
 }
 
 func translateEposition(eposition float64, floorCount float64, buildheight float64) float64 {
