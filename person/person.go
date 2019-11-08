@@ -51,6 +51,8 @@ func New(name string, level int, b *bank.Bank) *Person {
 }
 
 func (p *Person) Run() {
+    atomic.AddInt64(&p.Bank.Population, 1) // increment population count
+
     for true {
         switch p.State {
             case StateIdle:
@@ -103,6 +105,7 @@ func (p *Person) Run() {
         }
         time.Sleep(time.Duration(TICKMS) * time.Millisecond)
     }
+    atomic.AddInt64(&p.Bank.Population, -1) // decrement population count
 }
 
 func (p *Person) AddObjective(level int, duration int) {

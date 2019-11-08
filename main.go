@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/jordansavant/elevators.go/elevator"
     "fmt"
     "strconv"
     "net"
@@ -84,8 +85,8 @@ var updateCounter = 0
 var lastSnapshot *server.SnapshotResponse = nil
 var snapshot *server.SnapshotResponse = nil
 
-var ewidth = 15.0
-var eheight = 20.0
+var ewidth = 18.0
+var eheight = 25.0
 var foundationy = float64(screenh - 10)
 
 var bgColor = color.RGBA{0x33, 0x33, 0xFF, 0xFF}
@@ -121,15 +122,20 @@ func guiUpdate(screen *ebiten.Image) error {
 	// Draw game world here
     screen.Fill(bgColor)
     if snapshot != nil {
-        ebitenutil.DebugPrint(screen, "Floors: " + strconv.Itoa(snapshot.FloorCount))
-        ebitenutil.DebugPrintAt(screen, "Elevators: " + strconv.Itoa(snapshot.ElevatorCount), 0, 15)
 
         fcount := float64(snapshot.FloorCount)
         ecount := float64(snapshot.ElevatorCount)
         positions := snapshot.ElevatorPositions
         occupants := snapshot.ElevatorOccupants
+        states := snapshot.ElevatorStates
         floorworkercounts := snapshot.FloorWorkerCounts
+        population := snapshot.Population
 
+        // draw details
+        ebitenutil.DebugPrint(screen, "Floors: " + strconv.Itoa(snapshot.FloorCount))
+        ebitenutil.DebugPrintAt(screen, "Elevators: " + strconv.Itoa(snapshot.ElevatorCount), 0, 15)
+        ebitenutil.DebugPrintAt(screen, "Population: " + strconv.Itoa(int(population)), 0, 30)
+    
         // draw ground
         ebitenutil.DrawRect(screen, 0, foundationy, float64(screenw), float64(screenh) - foundationy, groundColor)
 
@@ -144,10 +150,25 @@ func guiUpdate(screen *ebiten.Image) error {
         // draw each elevator
         for i, p := range positions {
 
+            state := states[i]
+
             // draw elevator at its position
             lx := buildleft + ewidth * float64(i)
             ly := foundationy - translateEposition(p, fcount, buildheight)
-            ebitenutil.DrawRect(screen, lx + 1, ly + 1, ewidth - 2 , eheight - 2, elevatorColor)
+            ec := color.RGBA{0, 0, 0, 255}
+            if state == elevator.StateIdle {
+                ec = color.RGBA{0, 0, 0, 255}
+            }
+            if state == elevator.StateMoving {
+                ec = color.RGBA{255, 210, 0, 255}
+            }
+            if state == elevator.StateReady {
+                ec = color.RGBA{0, 210, 255, 255}
+            }
+            if state == elevator.StateCheckButton {
+                ec = color.RGBA{210, 0, 255, 255}
+            }
+            ebitenutil.DrawRect(screen, lx + 1, ly + 1, ewidth - 2 , eheight - 2, ec)
 
             // draw occupants within elevator
             o := occupants[i]
