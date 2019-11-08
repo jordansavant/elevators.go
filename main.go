@@ -13,23 +13,12 @@ import (
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
-func usage() {
-    fmt.Println("Run Server $", "./main.go server [floor-count elevator-count] ")
-    fmt.Println("Run Client $", "./main.go client [worker-name] ")
-}
-
-func fail(msg string) {
-    usage()
-    panic(msg)
-}
-
-var s *server.Server;
-var c *client.Client;
+var srv *server.Server;
+var clnt *client.Client;
 var port = 1234
 
 // Main
 func main() {
-
     as := os.Args[1]
     switch as {
         case "server":
@@ -44,16 +33,15 @@ func main() {
 func runServer(serverAddress string, args []string) {
     floorCount, e := strconv.Atoi(os.Args[2])
     if e != nil || floorCount <= 0 {
-        fail("missing valid floor count arg")
+        panic("missing valid floor count arg")
     }
     elevatorCount, e := strconv.Atoi(os.Args[3])
     if e != nil || elevatorCount <= 0 {
-        fail("missing valid elevator count arg")
+        panic("missing valid elevator count arg")
     }
 
     // start a server
-    srv := server.New(floorCount, elevatorCount)
-    s = srv
+    srv = server.New(floorCount, elevatorCount)
     rpc.Register(srv)
     // Create a TCP listener that will listen on `Port`
     listener, _ := net.Listen("tcp", serverAddress)
@@ -61,7 +49,6 @@ func runServer(serverAddress string, args []string) {
     defer listener.Close()
     // Wait for incoming connections
     rpc.Accept(listener)
-    fmt.Println("server exit")
 }
 
 var screenw = 320
@@ -69,11 +56,10 @@ var screenh = 240
 var scrscale = 2.0
 func runClient(serverAddress string, args []string) {
     // start a client
-    client := client.New();
-    c = client
-    client.Start(serverAddress);
+    clnt = client.New();
+    clnt.Start(serverAddress);
     // Close client whenever we stop
-    defer client.End()
+    defer clnt.End()
 
     cmd := args[2]
     switch cmd {
@@ -81,7 +67,7 @@ func runClient(serverAddress string, args []string) {
         case "worker":
             wname := args[3] // Joe
             sched := args[4] // 2:2_4:3_5:1_1:0
-            client.AddWorker(wname, sched)
+            clnt.AddWorker(wname, sched)
             fmt.Println("client exit")
             break
 
@@ -114,7 +100,7 @@ func guiUpdate(screen *ebiten.Image) error {
 
     // Listen for input
     if isWorkerButtonPressed() {
-        c.AddWorker("Joe", "2:2_3:3_5:1_1:0")
+        clnt.AddWorker("Joe", "2:2_3:3_5:1_1:0")
     }
 
     // Update game world here
@@ -122,7 +108,7 @@ func guiUpdate(screen *ebiten.Image) error {
         // this lets me run things at less than 60fps so i can ping the server only periodically
         // make get elevator data from server
         lastSnapshot = snapshot
-        snapshot = c.GetSnapshot()
+        snapshot = clnt.GetSnapshot()
         // fmt.Println(lastSnapshot)
     }
     updateCounter++
@@ -178,23 +164,6 @@ func guiUpdate(screen *ebiten.Image) error {
 
 	// End
 	return nil
-}
-
-func clamp(x float64, lowerlimit float64, upperlimit float64) float64 {
-    if x < lowerlimit {
-        return lowerlimit
-    }
-    if x > upperlimit {
-        return upperlimit
-    }
-    return x
-}
-
-func smoothstep(edge0 float64, edge1 float64, x float64) float64 {
-    // Scale, bias and saturate x to 0..1 range
-    x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0); 
-    // Evaluate polynomial
-    return x * x * (3 - 2 * x);
 }
 
 func translateEposition(eposition float64, floorCount float64, buildheight float64) float64 {
