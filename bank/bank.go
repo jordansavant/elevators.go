@@ -4,6 +4,7 @@ import (
     "fmt"
     "time"
     "math"
+    "math/rand"
     "strconv"
     "sync"
     "github.com/jordansavant/elevators.go/elevator"
@@ -89,28 +90,45 @@ func (b *Bank) GetIdleElevator() *elevator.Elevator {
 
 func (b *Bank) GetIdleElevatorClosest(requestedLevel int) *elevator.Elevator {
     // get elevator closest to requested level
-    var e *elevator.Elevator = nil
+    // FUNSIES lets pick a random one if several are closest
+    var els []*elevator.Elevator
     var closestdist = 0.0
-    for i := 0; i < len(b.Elevators); i++ {
-        if b.Elevators[i].State == elevator.StateIdle {
-            dist := math.Abs(float64(b.Elevators[i].Level - requestedLevel))
-            if e == nil || dist < closestdist {
+    for _, e := range b.Elevators {
+        if e.State == elevator.StateIdle {
+            dist := math.Abs(float64(e.Level - requestedLevel))
+            if len(els) == 0 { // if first add it to list
                 closestdist = dist
-                e = b.Elevators[i]
+                els = append(els, e)
+            } else if dist < closestdist { // if closer refill list
+                closestdist = dist
+                els = nil
+                els = append(els, e)
+            } else if dist == closestdist { // if same dist add to ist
+                els = append(els, e)
             }
         }
     }
-    return e
+    if len(els) == 0 {
+        return nil
+    }
+    r := rand.Intn(len(els))
+    return els[r];
 }
 
 func (b *Bank) GetElevator(level int) *elevator.Elevator {
     // look through elevators and see if one is at the requested floor and is loading
-    for i := 0; i < len(b.Elevators); i++ {
-        if b.Elevators[i].ReadyAtLevel(level) {
-            return b.Elevators[i]
+    // FUNSIES lets pick a random one from the level requested
+    var rl []*elevator.Elevator
+    for _, e := range b.Elevators {
+        if e.ReadyAtLevel(level) {
+            rl = append(rl, e)
         }
     }
-    return nil
+    if len(rl) == 0 {
+        return nil
+    }
+    r := rand.Intn(len(rl))
+    return rl[r];
 }
 
 func (b *Bank) RequestLift(curlevel int, up bool) {
@@ -119,9 +137,9 @@ func (b *Bank) RequestLift(curlevel int, up bool) {
         return
     }
     // dont' queue if elevator at floor and ready
-    // if b.HasElevatorReady(curlevel) {
-    //     return
-    // }
+    if b.HasElevatorReady(curlevel) {
+        return
+    }
     // queue requesting floor
     b.QueueMutex.Lock()
     b.Queue = append(b.Queue, &MoveRequest {
@@ -133,7 +151,7 @@ func (b *Bank) RequestLift(curlevel int, up bool) {
 
 func (b *Bank) HasElevatorReady(level int) bool {
     for _, e := range b.Elevators {
-        if e.State == elevator.StateIdle && e.Level == level {
+        if e.State == elevator.StateReady && e.Level == level {
             return true
         }
     }

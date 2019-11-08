@@ -6,6 +6,7 @@ import (
     "strconv"
     "net"
     "net/rpc"
+    "math/rand"
     "os"
     "github.com/jordansavant/elevators.go/server"
     "github.com/jordansavant/elevators.go/client"
@@ -20,6 +21,8 @@ var port = 1234
 
 // Main
 func main() {
+    //rand.Seed(time.Now().Unix())
+    rand.Seed(12345) // SEED to a consistent seed for testing
     as := os.Args[1]
     switch as {
         case "server":

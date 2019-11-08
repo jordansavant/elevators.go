@@ -61,6 +61,7 @@ func (p *Person) Run() {
                 } else {
                     fmt.Println(p.Name + " leaving")
                     atomic.AddInt64(&p.Bank.FloorWorkerCounts[p.Level - 1], -1) // decrement that I am working on this floor
+                    atomic.AddInt64(&p.Bank.Population, -1) // decrement population count
                     return // END
                 }
                 break
@@ -105,7 +106,6 @@ func (p *Person) Run() {
         }
         time.Sleep(time.Duration(TICKMS) * time.Millisecond)
     }
-    atomic.AddInt64(&p.Bank.Population, -1) // decrement population count
 }
 
 func (p *Person) AddObjective(level int, duration int) {
