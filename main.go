@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/jordansavant/elevators.go/elevator"
     "fmt"
     "strconv"
     "strings"
@@ -9,9 +8,10 @@ import (
     "net/rpc"
     "math/rand"
     "os"
+	"image/color"
+	"github.com/jordansavant/elevators.go/elevator"
     "github.com/jordansavant/elevators.go/server"
     "github.com/jordansavant/elevators.go/client"
-	"image/color"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
@@ -102,6 +102,8 @@ var scrcenterx = float64(screenw / 2)
 var scrcentery = float64(screenh / 2)
 var job string;
 var jobModulo = 180
+var autoModulo = 300
+var auto = false
 
 func guiUpdate(screen *ebiten.Image) error {
 
@@ -119,10 +121,17 @@ func guiUpdate(screen *ebiten.Image) error {
     if job == "" || updateCounter % jobModulo == 0 {
         job = createSchedule(snapshot.FloorCount)
     }
+    if auto && updateCounter % autoModulo == 0 {
+        randomJob := createSchedule(snapshot.FloorCount)
+        clnt.AddWorker("Oddo", randomJob)
+    }
 
     // Listen for input
     if isWorkerButtonPressed() {
         clnt.AddWorker("Joe", job)
+    }
+    if isAutoButtonPressed() {
+        auto = !auto
     }
 
 	// Determine if we skip this frame
@@ -147,6 +156,11 @@ func guiUpdate(screen *ebiten.Image) error {
         ebitenutil.DebugPrintAt(screen, "Elevators: " + strconv.Itoa(snapshot.ElevatorCount), 0, 15)
         ebitenutil.DebugPrintAt(screen, "Population: " + strconv.Itoa(int(population)), 0, 30)
         ebitenutil.DebugPrintAt(screen, "Run Job: " + job, 0, 45)
+        if auto {
+            ebitenutil.DebugPrintAt(screen, "Auto: On", 0, 60)
+        } else {
+            ebitenutil.DebugPrintAt(screen, "Auto: Off", 0, 60)
+        }
     
         // draw ground
         ebitenutil.DrawRect(screen, 0, foundationy, float64(screenw), float64(screenh) - foundationy, groundColor)
@@ -225,4 +239,12 @@ func isWorkerButtonPressed() bool {
     upPressedLast = upPressed
     upPressed = ebiten.IsKeyPressed(ebiten.KeyEnter)
     return upPressed && !upPressedLast
+}
+
+var autoPressedLast = false
+var autoPressed = false
+func isAutoButtonPressed() bool {
+    autoPressedLast = autoPressed
+    autoPressed = ebiten.IsKeyPressed(ebiten.KeyA)
+    return autoPressed && !autoPressedLast
 }
