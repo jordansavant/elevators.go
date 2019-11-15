@@ -94,8 +94,12 @@ func (b *Bank) GetIdleElevatorClosest(requestedLevel int) *elevator.Elevator {
     var els []*elevator.Elevator
     var closestdist = 0.0
     for _, e := range b.Elevators {
+        dist := math.Abs(float64(e.Level - requestedLevel))
+        // If there is an elevator on this floor that is ready return it immediately
+        if dist == 0 && e.State == elevator.StateReady {
+            return e
+        }
         if e.State == elevator.StateIdle {
-            dist := math.Abs(float64(e.Level - requestedLevel))
             if len(els) == 0 { // if first add it to list
                 closestdist = dist
                 els = append(els, e)

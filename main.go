@@ -113,7 +113,7 @@ func guiUpdate(screen *ebiten.Image) error {
         // make get elevator data from server
         lastSnapshot = snapshot
         snapshot = clnt.GetSnapshot()
-        fmt.Println("tick network", updateCounter, snapshot)
+        // fmt.Println("tick network", updateCounter, snapshot)
     }
     updateCounter++
 
@@ -161,7 +161,7 @@ func guiUpdate(screen *ebiten.Image) error {
         } else {
             ebitenutil.DebugPrintAt(screen, "Auto: Off", 0, 60)
         }
-    
+
         // draw ground
         ebitenutil.DrawRect(screen, 0, foundationy, float64(screenw), float64(screenh) - foundationy, groundColor)
 
@@ -218,8 +218,21 @@ func createSchedule(floors int) string {
     // between 1 and 10 jobs
     var jstrs []string
     jobcount := 1 + rand.Intn(9)
+    last := 0;
+    floor := 0;
     for i := 0; i < jobcount; i++ {
-        floor := 1 + rand.Intn(floors)
+        if floors > 1 {
+            // ensure we dont do the same floor back to back
+            for {
+                floor = 2 + rand.Intn(floors - 1)
+                if floor != last {
+                    break
+                }
+            }
+        } else {
+            floor = 1
+        }
+        last = floor
         time := 1 + rand.Intn(7)
         jstrs = append(jstrs, strconv.Itoa(floor) + ":" + strconv.Itoa(time))
     }
