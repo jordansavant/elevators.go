@@ -77,7 +77,7 @@ func runClient(serverAddress string, args []string) {
             break
 
         case "gui":
-            if err := ebiten.Run(guiUpdate, screenw, screenh, scrscale, "Hello, World!"); err != nil {
+            if err := ebiten.Run(guiUpdate, screenw, screenh, scrscale, "Now in ELEVision!"); err != nil {
                 panic(err)
             }
             break
@@ -106,6 +106,10 @@ var autoModulo = 300
 var auto = false
 
 func guiUpdate(screen *ebiten.Image) error {
+
+    if isQuitButtonPressed() {
+        os.Exit(0)
+    }
 
     // Update game world here
     if updateCounter % updateModulo == 0 {
@@ -260,4 +264,12 @@ func isAutoButtonPressed() bool {
     autoPressedLast = autoPressed
     autoPressed = ebiten.IsKeyPressed(ebiten.KeyA)
     return autoPressed && !autoPressedLast
+}
+
+var quitPressedLast = false
+var quitPressed = false
+func isQuitButtonPressed() bool {
+    quitPressedLast = quitPressed
+    quitPressed = ebiten.IsKeyPressed(ebiten.KeyEscape)
+    return quitPressed && !quitPressedLast
 }

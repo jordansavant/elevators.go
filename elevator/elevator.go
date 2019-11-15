@@ -130,14 +130,21 @@ func (e *Elevator) Move() {
 func (e *Elevator) GetGoalLevel() int {
     // Loop through our buttons and get closest goal
     // TODO honor a diretion from the bank ASC vs DESC
+    var closestdist = 99999.0
+    var closestFloor = 0
     e.ButtonMutex.Lock()
+    defer e.ButtonMutex.Unlock()
     for i := 0; i < len(e.Buttons); i++ {
-        if e.Buttons[i] {
-            e.ButtonMutex.Unlock()
-            return i + 1
+        buttonFloor := i + 1
+        dist := math.Abs(float64(e.Level - buttonFloor))
+        if e.Buttons[i] && (closestFloor == 0 || dist < closestdist) {
+            closestdist = dist
+            closestFloor = buttonFloor
         }
     }
-    e.ButtonMutex.Unlock()
+    if closestFloor > 0 {
+        return closestFloor
+    }
     return e.Level
 }
 
