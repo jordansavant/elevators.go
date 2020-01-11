@@ -16,8 +16,8 @@ import (
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
-var srv *server.Server;
-var clnt *client.Client;
+var srv *server.Server
+var clnt *client.Client
 var port = 1234
 
 // Main
@@ -61,8 +61,8 @@ var screenh = 360
 var scrscale = 2.0
 func runClient(serverAddress string, args []string) {
     // start a client
-    clnt = client.New();
-    clnt.Start(serverAddress);
+    clnt = client.New()
+    clnt.Start(serverAddress)
     // Close client whenever we stop
     defer clnt.End()
 
@@ -100,7 +100,7 @@ var groundColor = color.RGBA{0, 0xAA, 0, 0xFF}
 
 var scrcenterx = float64(screenw / 2)
 var scrcentery = float64(screenh / 2)
-var job string;
+var job string
 var jobModulo = 180
 var autoModulo = 300
 var auto = false
@@ -222,10 +222,10 @@ func createSchedule(floors int) string {
     // between 1 and 10 jobs
     var jstrs []string
     jobcount := 1 + rand.Intn(9)
-    last := 0;
-    floor := 0;
+    last := 0
+    floor := 0
     for i := 0; i < jobcount; i++ {
-        if floors > 1 {
+        if floors > 2 {
             // ensure we dont do the same floor back to back
             for {
                 floor = 2 + rand.Intn(floors - 1)
@@ -234,7 +234,7 @@ func createSchedule(floors int) string {
                 }
             }
         } else {
-            floor = 1
+            floor = rand.Intn(2) + 1
         }
         last = floor
         time := 1 + rand.Intn(7)
