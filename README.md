@@ -14,8 +14,18 @@ I used structs to object-orient the design and a Finite State Machine within eac
 
 Since each object's AI runs within a go routine I used Mutexes to ensure requests made from object to object are safe.
 
+It runs in the status of a Server or a Client.
+
+To start the server:
 ```
-$ go run sim.go
+$ ./bin/elevators.go server [number of floors] [number of elevators]
 ```
 
-<img src="https://media.giphy.com/media/hu7xwqc6DMOgVo6sW9/giphy.gif" />
+To start the gui client:
+```
+$ ./bin/elevators.go client gui
+```
+
+<img src="/jordansavant/elevators.go/master/gui.gif" />
+
+<img src="/jordansavant/elevators.go/master/elevators.gif" />
