@@ -26,6 +26,6 @@ To start the gui client:
 $ ./bin/elevators.go client gui
 ```
 
-<img src="/jordansavant/elevators.go/master/gui.gif" />
+<img src="https://raw.githubusercontent.com/jordansavant/elevators.go/master/gui.gif" />
 
-<img src="/jordansavant/elevators.go/master/elevators.gif" />
+<img src="https://raw.githubusercontent.com/jordansavant/elevators.go/master/elevators.gif" />
