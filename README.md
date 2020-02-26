@@ -26,6 +26,8 @@ To start the gui client:
 $ ./bin/elevators.go client gui
 ```
 
+Once in the GUI you can add a person with "Enter" or turn on automatic with "A"
+
 <img src="https://raw.githubusercontent.com/jordansavant/elevators.go/master/gui.gif" />
 
 <img src="https://raw.githubusercontent.com/jordansavant/elevators.go/master/elevators.gif" />
